@@ -132,24 +132,44 @@ class _EpubPaneState extends ConsumerState<EpubPane> implements ReaderActions {
     final block = int.tryParse(parts[0]) ?? 0;
     final char = int.tryParse(parts[1]) ?? 0;
     final page = pageOf(pages, block, char);
-    _controller?.jumpToPage(page);
-    setState(() {
-      _mark = highlightLength > 0
+    // Later re-layouts return here, not to wherever the reader was before.
+    _block = block;
+    _char = char;
+    _showPage(
+      page,
+      highlightLength > 0
           ? (block: block, start: char, end: char + highlightLength, page: page)
-          : null;
+          : null,
+    );
+  }
+
+  @override
+  void clearHighlight() {
+    if (mounted) setState(() => _mark = null);
+  }
+
+  /// Opens [page] with a fresh controller. Jumping the old one is unreliable
+  /// while this screen is coming back from behind another route.
+  void _showPage(int page, ({int block, int start, int end, int page})? mark) {
+    final old = _controller;
+    setState(() {
+      _mark = mark;
+      _controller = PageController(initialPage: page);
     });
+    WidgetsBinding.instance.addPostFrameCallback((_) => old?.dispose());
+    _report(page, remember: mark == null);
   }
 
   @override
   void goToFraction(double fraction) {
     final pages = _pages;
     if (pages == null) return;
-    _controller?.jumpToPage(((pages.length - 1) * fraction).round());
+    _showPage(((pages.length - 1) * fraction).round(), null);
   }
 
   void _jumpToBlock(int block) {
     final pages = _pages;
-    if (pages != null) _controller?.jumpToPage(pageOf(pages, block, 0));
+    if (pages != null) _showPage(pageOf(pages, block, 0), null);
   }
 
   Future<void> _layout(Size size, TextSettings settings) async {
@@ -171,13 +191,18 @@ class _EpubPaneState extends ConsumerState<EpubPane> implements ReaderActions {
       index = ((pages.length - 1) * percent).round();
       _restorePercent = null;
     }
+    final mark = _mark;
+    if (mark != null) {
+      index = pageOf(pages, mark.block, mark.start);
+      _mark = (block: mark.block, start: mark.start, end: mark.end, page: index);
+    }
     final old = _controller;
     setState(() {
       _pages = pages;
       _controller = PageController(initialPage: index);
     });
     WidgetsBinding.instance.addPostFrameCallback((_) => old?.dispose());
-    _report(index, remember: true);
+    _report(index, remember: mark == null);
     if (!_announced) {
       _announced = true;
       widget.callbacks.onActions?.call(this);
@@ -291,7 +316,7 @@ class EpubPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final color = context.twofold.text;
-    final markColor = context.twofold.accent.withValues(alpha: 0.25);
+    final markColor = context.twofold.accent.withValues(alpha: 0.35);
     return LayoutBuilder(
       builder: (context, box) => ClipRect(
         child: Stack(

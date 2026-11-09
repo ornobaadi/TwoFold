@@ -42,7 +42,7 @@ android {
             create("upload") {
                 keyAlias = keyProperties.getProperty("keyAlias")
                 keyPassword = keyProperties.getProperty("keyPassword")
-                storeFile = rootProject.file(keyProperties.getProperty("storeFile"))
+                storeFile = file(keyProperties.getProperty("storeFile"))
                 storePassword = keyProperties.getProperty("storePassword")
             }
         }

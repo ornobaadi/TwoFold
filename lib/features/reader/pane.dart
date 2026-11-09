@@ -7,6 +7,7 @@ abstract class ReaderActions {
   Stream<SearchHit> search(String query);
   void goTo(String location, {int highlightLength = 0});
   void goToFraction(double fraction);
+  void clearHighlight();
 }
 
 class TocItem {

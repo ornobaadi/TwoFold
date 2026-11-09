@@ -263,6 +263,123 @@ void main() {
     await tester.pump(const Duration(seconds: 5));
     await tester.runAsync(() => db.close());
   });
+
+  testWidgets('search: a result opens its page and survives a re-layout',
+      (tester) async {
+    ReaderActions? actions;
+    final log = _Log();
+    Widget pane(double height) => _host(_TallPage(
+          height,
+          EpubPane(
+            book: _book('epub', _alice),
+            saved: null,
+            callbacks: PaneCallbacks(
+              onCenterTap: () {},
+              onLocation: log.callbacks.onLocation,
+              onContents: (_) {},
+              onReady: () => log.ready = true,
+              onError: (e) => log.error = e,
+              onActions: (a) => actions = a,
+            ),
+          ),
+        ));
+    await tester.pumpWidget(pane(600));
+    await _settle(tester, () => log.ready);
+    expect(log.label, startsWith('1 / '));
+
+    final hits = (await tester.runAsync(
+        () => actions!.search('mock turtle').toList()))!;
+    expect(hits.length, greaterThan(3));
+    final hit = hits.last;
+    final page = hit.pageLabel.replaceFirst('Page ', '');
+
+    // Height changes first, as when a keyboard closes, while the jump lands.
+    actions!.goTo(hit.location, highlightLength: hit.sourceLength);
+    await tester.pump();
+    expect(log.label, startsWith('$page / '));
+    final highlighted = find.byWidgetPredicate((w) =>
+        w is RichText &&
+        w.text.toPlainText().toLowerCase().contains('mock turtle'));
+    expect(highlighted, findsWidgets);
+
+    await tester.pumpWidget(pane(400));
+    await _settle(tester, () => false);
+    expect(log.label, isNot(startsWith('1 / ')));
+    expect(highlighted, findsWidgets, reason: 'still on the matching line');
+    await tester.pumpWidget(pane(600));
+    await _settle(tester, () => false);
+    expect(log.label, startsWith('$page / '));
+    await tester.pumpWidget(const SizedBox());
+  });
+
+  testWidgets('search screen: tapping a result moves the real reader',
+      (tester) async {
+    final db = (await tester.runAsync(() => openTwoFoldDb(
+        path: inMemoryDatabasePath, factory: databaseFactoryFfi)))!;
+    final repo = BookRepo(db);
+    final book = _book('epub', _alice);
+    await tester.runAsync(() => repo.insertBook(book));
+    await tester.pumpWidget(ProviderScope(
+      overrides: [
+        bookRepoProvider.overrideWithValue(repo),
+        audioHandlerProvider.overrideWithValue(_handler(repo)),
+      ],
+      child: MaterialApp(
+        theme: buildTheme(ReaderTheme.paper),
+        home: ReaderScreen(book: book),
+      ),
+    ));
+    await _settle(tester, () => find.textContaining(' / ').evaluate().isNotEmpty);
+    await _settle(tester, () => false);
+    await tester.tap(find.text('Got it'));
+    await tester.pump(const Duration(milliseconds: 300));
+
+    await tester.tap(find.text('Search'));
+    for (var i = 0; i < 8; i++) {
+      await tester.pump(const Duration(milliseconds: 100));
+    }
+    await tester.enterText(find.byType(TextField), 'mock turtle');
+    await tester.pump(const Duration(milliseconds: 500));
+    await _settle(tester, () => find.byType(Card).evaluate().isNotEmpty);
+    await _settle(tester, () => false);
+
+    final firstLabel = tester
+        .widget<Text>(find.descendant(
+            of: find.byType(Card).first, matching: find.byType(Text)).first)
+        .data!;
+    final expected = firstLabel.replaceFirst('Page ', '');
+    await tester.tap(find.byType(Card).first);
+    await tester.pump(const Duration(milliseconds: 400));
+    await _settle(tester, () => false);
+
+    expect(find.text('$expected / 257').evaluate().isNotEmpty ||
+        find.textContaining('$expected / ').evaluate().isNotEmpty, isTrue);
+    expect(find.textContaining(' of '), findsWidgets, reason: 'result bar');
+
+    // The bar steps forward without reopening search.
+    await tester.tap(find.byTooltip('Next result'));
+    await tester.pump(const Duration(milliseconds: 300));
+    expect(find.textContaining('2 of '), findsOneWidget);
+
+    await tester.tap(find.byTooltip('End search'));
+    await tester.pump(const Duration(milliseconds: 300));
+    expect(find.byTooltip('Next result'), findsNothing);
+
+    await tester.pumpWidget(const SizedBox());
+    await tester.pump(const Duration(seconds: 5));
+    await tester.runAsync(() => db.close());
+  });
+}
+
+class _TallPage extends StatelessWidget {
+  const _TallPage(this.height, this.child);
+
+  final double height;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) =>
+      Align(alignment: Alignment.topCenter, child: SizedBox(height: height, child: child));
 }
 
 TwoFoldAudioHandler _handler(BookRepo repo) => TwoFoldAudioHandler(repo);

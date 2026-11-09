@@ -15,7 +15,7 @@ class SearchHit {
   final int matchLength;
   final String pageLabel;
 
-  /// Same format the reader saves: `block:char` or a PDF page number.
+  /// `block:char` in an EPUB, `page:char` in a PDF.
   final String location;
 
   /// How far through the book, from 0 to 1.

@@ -51,7 +51,11 @@ class PdfPane extends StatefulWidget {
 }
 
 class _PdfPaneState extends State<PdfPane> implements ReaderActions {
-  late final PageController _pages;
+  late PageController _pages;
+
+  // The search match being shown, in PDF page coordinates.
+  int? _markPage;
+  List<PdfRect> _markRects = const [];
   PdfDocument? _doc;
   CropBox? _typical;
   final _crops = <int, CropBox?>{};
@@ -103,7 +107,7 @@ class _PdfPaneState extends State<PdfPane> implements ReaderActions {
           text,
           m,
           pageLabel: 'Page ${i + 1}',
-          location: '${i + 1}',
+          location: '${i + 1}:${m.$1}',
           fraction: _count <= 1 ? 0 : i / (_count - 1),
         );
       }
@@ -112,13 +116,51 @@ class _PdfPaneState extends State<PdfPane> implements ReaderActions {
 
   @override
   void goTo(String location, {int highlightLength = 0}) {
-    final page = int.tryParse(location);
-    if (page != null) _pages.jumpToPage(page - 1);
+    final parts = location.split(':');
+    final page = int.tryParse(parts[0]);
+    if (page == null) return;
+    _showPage(page - 1);
+    final char = parts.length > 1 ? int.tryParse(parts[1]) : null;
+    if (char != null && highlightLength > 0) {
+      _highlight(page - 1, char, highlightLength);
+    }
   }
 
   @override
   void goToFraction(double fraction) =>
-      _pages.jumpToPage(((_count - 1) * fraction).round());
+      _showPage(((_count - 1) * fraction).round());
+
+  @override
+  void clearHighlight() {
+    if (mounted) setState(() => _markPage = null);
+  }
+
+  /// Opens [index] with a fresh controller. Jumping the old one is unreliable
+  /// while this screen is coming back from behind another route.
+  void _showPage(int index) {
+    final old = _pages;
+    setState(() {
+      _current = index;
+      _scale = 1;
+      _pan = Offset.zero;
+      _markPage = null;
+      _pages = PageController(initialPage: index);
+    });
+    WidgetsBinding.instance.addPostFrameCallback((_) => old.dispose());
+    _measureAround(index);
+    _report(index);
+  }
+
+  Future<void> _highlight(int index, int start, int length) async {
+    final text = await _doc?.pages[index].loadText();
+    if (text == null || !mounted || _current != index) return;
+    final end = min(start + length, text.charRects.length);
+    if (start >= end) return;
+    setState(() {
+      _markPage = index;
+      _markRects = mergeLines(text.charRects.sublist(start, end));
+    });
+  }
 
   void _report(int index) {
     final page = index + 1;
@@ -313,6 +355,7 @@ class _PdfPaneState extends State<PdfPane> implements ReaderActions {
               onPointerUp: (e) => _onUp(e.pointer),
               onPointerCancel: (e) => _onUp(e.pointer),
               child: PageView.builder(
+                key: ObjectKey(_pages),
                 controller: _pages,
                 physics: _touches.length > 1 || _zoomed
                     ? const NeverScrollableScrollPhysics()
@@ -320,6 +363,7 @@ class _PdfPaneState extends State<PdfPane> implements ReaderActions {
                 itemCount: doc.pages.length,
                 onPageChanged: (i) {
                   setState(() {
+                    if (_markPage != i) _markPage = null;
                     _current = i;
                     _scale = 1;
                     _pan = Offset.zero;
@@ -333,6 +377,7 @@ class _PdfPaneState extends State<PdfPane> implements ReaderActions {
                     document: doc,
                     crop: cropForPage(_crops[i], _typical),
                     view: size,
+                    marks: i == _markPage ? _markRects : const [],
                   );
                   if (i != _current || !_zoomed) return page;
                   return Transform.translate(
@@ -349,6 +394,58 @@ class _PdfPaneState extends State<PdfPane> implements ReaderActions {
   }
 }
 
+/// One highlight rectangle per line of matched characters.
+List<PdfRect> mergeLines(List<PdfRect> chars) {
+  final out = <PdfRect>[];
+  for (final r in chars) {
+    if (r.width <= 0 || r.height <= 0) continue;
+    final last = out.isEmpty ? null : out.last;
+    if (last != null && r.top > last.bottom && r.bottom < last.top) {
+      out[out.length - 1] = PdfRect(
+        min(last.left, r.left),
+        max(last.top, r.top),
+        max(last.right, r.right),
+        min(last.bottom, r.bottom),
+      );
+    } else {
+      out.add(r);
+    }
+  }
+  return out;
+}
+
+class _MarkPainter extends CustomPainter {
+  _MarkPainter(this.marks, this.scale, this.pageHeight, this.origin, this.color);
+
+  final List<PdfRect> marks;
+  final double scale;
+  final double pageHeight;
+  final Offset origin;
+  final Color color;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()..color = color;
+    for (final r in marks) {
+      // PDF coordinates start at the bottom of the page.
+      final rect = Rect.fromLTRB(
+        r.left * scale,
+        (pageHeight - r.top) * scale,
+        r.right * scale,
+        (pageHeight - r.bottom) * scale,
+      ).shift(origin).inflate(1.5);
+      canvas.drawRRect(
+        RRect.fromRectAndRadius(rect, const Radius.circular(3)),
+        paint,
+      );
+    }
+  }
+
+  @override
+  bool shouldRepaint(_MarkPainter old) =>
+      old.marks != marks || old.scale != scale || old.origin != origin;
+}
+
 /// One page with its blank margins cut off, as large as the screen allows and
 /// tinted to the reading theme, so page and app read as one sheet.
 class _CroppedPage extends StatelessWidget {
@@ -357,8 +454,10 @@ class _CroppedPage extends StatelessWidget {
     required this.page,
     required this.crop,
     required this.view,
+    this.marks = const [],
   });
 
+  final List<PdfRect> marks;
   final PdfDocument document;
   final PdfPage page;
   final CropBox crop;
@@ -384,23 +483,40 @@ class _CroppedPage extends StatelessWidget {
         width: fit.width,
         height: fit.height,
         child: ClipRect(
-          child: ColorFiltered(
-            colorFilter: filter,
-            child: OverflowBox(
-              alignment: Alignment.topLeft,
-              minWidth: fullW,
-              maxWidth: fullW,
-              minHeight: fullH,
-              maxHeight: fullH,
-              child: Transform.translate(
-                offset: Offset(-crop.left * fullW, -crop.top * fullH),
-                child: PdfPageView(
-                  document: document,
-                  pageNumber: page.pageNumber,
-                  decoration: const BoxDecoration(color: Colors.white),
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              ColorFiltered(
+                colorFilter: filter,
+                child: OverflowBox(
+                  alignment: Alignment.topLeft,
+                  minWidth: fullW,
+                  maxWidth: fullW,
+                  minHeight: fullH,
+                  maxHeight: fullH,
+                  child: Transform.translate(
+                    offset: Offset(-crop.left * fullW, -crop.top * fullH),
+                    child: PdfPageView(
+                      document: document,
+                      pageNumber: page.pageNumber,
+                      decoration: const BoxDecoration(color: Colors.white),
+                    ),
+                  ),
                 ),
               ),
-            ),
+              if (marks.isNotEmpty)
+                IgnorePointer(
+                  child: CustomPaint(
+                    painter: _MarkPainter(
+                      marks,
+                      fit.scale,
+                      page.height,
+                      Offset(-crop.left * fullW, -crop.top * fullH),
+                      c.accent.withValues(alpha: 0.35),
+                    ),
+                  ),
+                ),
+            ],
           ),
         ),
       ),

@@ -6,11 +6,27 @@ import '../../app/theme.dart';
 import 'pane.dart';
 import 'search.dart';
 
-/// Finds words in the book. Returns the hit the user tapped.
+/// What the user picked, with the results around it for stepping through.
+class SearchResult {
+  const SearchResult(this.query, this.hits, this.index);
+
+  final String query;
+  final List<SearchHit> hits;
+  final int index;
+}
+
+/// Finds words in the book. Returns the result the user tapped.
 class SearchScreen extends StatefulWidget {
-  const SearchScreen({super.key, required this.actions});
+  const SearchScreen({
+    super.key,
+    required this.actions,
+    this.previous,
+  });
 
   final ReaderActions actions;
+
+  /// An earlier search to come back to, instead of starting empty.
+  final SearchResult? previous;
 
   @override
   State<SearchScreen> createState() => _SearchScreenState();
@@ -22,9 +38,22 @@ class _SearchScreenState extends State<SearchScreen> {
   Timer? _delay;
   bool _searching = false;
   String _query = '';
+  final _text = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    final previous = widget.previous;
+    if (previous != null) {
+      _query = previous.query;
+      _text.text = previous.query;
+      _hits.addAll(previous.hits);
+    }
+  }
 
   @override
   void dispose() {
+    _text.dispose();
     _running?.cancel();
     _delay?.cancel();
     super.dispose();
@@ -73,7 +102,9 @@ class _SearchScreenState extends State<SearchScreen> {
             Padding(
               padding: const EdgeInsets.all(Space.m),
               child: SearchBar(
-                autoFocus: true,
+                controller: _text,
+                // The keyboard waits when coming back to existing results.
+                autoFocus: widget.previous == null,
                 hintText: 'Search this book',
                 elevation: const WidgetStatePropertyAll(0),
                 constraints: const BoxConstraints(minHeight: 56),
@@ -142,7 +173,9 @@ class _SearchScreenState extends State<SearchScreen> {
         return Card(
           clipBehavior: Clip.antiAlias,
           child: InkWell(
-            onTap: () => Navigator.of(context).pop(hit),
+            onTap: () => Navigator.of(context).pop(
+              SearchResult(_query, List.of(_hits), i),
+            ),
             child: Padding(
               padding: const EdgeInsets.all(Space.l),
               child: Column(

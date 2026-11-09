@@ -82,12 +82,15 @@ Testing: unit tests for repo and skip/clamp-across-tracks logic, widget tests fo
 - **Material 3 Expressive replaces the paperback look (user request, 2026-11-01):** `design.md` was rewritten. No dynamic colour: the page tint and brand stay predictable, and it would add a plugin.
 - **Identity:** app TwoFold, package `com.ornobaadi.twofold`, Dart package `twofold`. A new application id installs as a new app, so nothing migrates from the old `com.example.duet` install.
 - **Search no longer offers to move the audio:** the estimate was too rough beside an exact search hit. My places keeps its labelled "close, not exact" moves.
+- **Bundled samples:** the app has no internet, so sample audio ships in the app and is copied to app storage on first launch.
 - **Release signing:** `android/key.properties` (not committed) selects the upload key; without it, release builds use the debug key.
 
 ## Update log
 
 Every change to the project gets a line here: date, what, why.
 
+- 2026-11-02 — Search fixed (user report: results opened the wrong page). The search keyboard resized the reader behind it, re-paginating the book with a stale position, and the jump then used an unreliable controller. Reader no longer resizes for the keyboard; jumps use a fresh controller and keep their target through re-layouts. Added exact-line highlight in PDFs (char rects) and a result bar with next, previous, all results and close.
+- 2026-11-02 — Added three bundled sample stories with LibriVox audio (`import/samples.dart`, `assets/samples`, about 8 MB): The Story of an Hour (caseyveronica), The Emperor's New Clothes (Phil Chenevert), The Lady, or the Tiger? (David Federman). Copied into the library on first launch; removed ones stay removed; Settings can restore them. EPUBs are built from public domain text with no Gutenberg branding; audio is mono 32 kbps MP3. Build bumped to `0.1.0-beta+2`.
 - 2026-11-02 — Version set to 0.1.0-beta, build 1 (user request). Fixed Listen controls overflowing on 360 dp phones when a book has chapters.
 - 2026-11-02 — Play release prep: explicit R8 and resource shrinking, native debug symbols, backups off (matches the privacy claim), predictive back, font licences registered, unused `cupertino_icons` and pre-release migrations removed. Added feature graphic, screenshots (`test/store_shots_test.dart`, `SHOTS=1`), privacy policy page, listing and `docs/release-guide.md`. Merged release manifest confirmed no INTERNET; `ACCESS_NETWORK_STATE` comes from a plugin and is disclosed.
 - 2026-11-02 — Final logo: F (bookmark with play) in flat Midnight Coral: `#17173A` background, coral `#FF6B6B`/`#E84C5A` creased bookmark, `#FFE08A` play. Installed as launcher, themed, notification, splash and Play icons; masters in `docs/logo`, rejected concepts in `docs/logo-concepts`.

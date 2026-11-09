@@ -19,7 +19,6 @@ import 'epub_view.dart';
 import 'pane.dart';
 import 'pdf_view.dart';
 import 'places_sheet.dart';
-import 'search.dart';
 import 'search_screen.dart';
 
 const openBookKey = 'open_book';
@@ -55,6 +54,7 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> {
   String? _audioError;
   List<TocItem> _contents = const [];
   Timer? _hideTimer;
+  SearchResult? _found;
 
   Book get _book => widget.book;
 
@@ -179,11 +179,34 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> {
   Future<void> _search() async {
     final actions = _actions;
     if (actions == null) return;
-    final hit = await Navigator.of(context)
-        .push<SearchHit>(fadeRoute(SearchScreen(actions: actions)));
-    if (hit == null || !mounted) return;
-    actions.goTo(hit.location, highlightLength: hit.sourceLength);
-    setState(() => _showControls = false);
+    final result = await Navigator.of(context).push<SearchResult>(
+      fadeRoute(SearchScreen(actions: actions, previous: _found)),
+    );
+    if (result == null || !mounted) return;
+    _showResult(result);
+  }
+
+  /// Opens the result's page, with the words highlighted.
+  void _showResult(SearchResult result) {
+    final hit = result.hits[result.index];
+    _actions?.goTo(hit.location, highlightLength: hit.sourceLength);
+    setState(() {
+      _found = result;
+      _showControls = false;
+    });
+  }
+
+  void _stepResult(int by) {
+    final found = _found!;
+    final count = found.hits.length;
+    _showResult(
+      SearchResult(found.query, found.hits, (found.index + by + count) % count),
+    );
+  }
+
+  void _endSearch() {
+    _actions?.clearHighlight();
+    setState(() => _found = null);
   }
 
   void _showPlaces() {
@@ -238,6 +261,8 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> {
     );
 
     return Scaffold(
+      // The keyboard on the search screen must not re-paginate the book.
+      resizeToAvoidBottomInset: false,
       body: SafeArea(
         child: Stack(
           children: [
@@ -292,14 +317,23 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> {
                           ),
                         ),
                       ),
-                      if (!_showControls)
+                      if (!_showControls && _found != null)
+                        Positioned.fill(
+                          child: _ResultBar(
+                            found: _found!,
+                            onResults: _search,
+                            onStep: _stepResult,
+                            onClose: _endSearch,
+                          ),
+                        )
+                      else if (!_showControls)
                         IgnorePointer(
                           child: Text(
                             _label,
                             style: theme.textTheme.labelMedium,
                           ),
                         ),
-                      if (hasAudio && !_showControls) ...const [
+                      if (hasAudio && !_showControls && _found == null) ...const [
                         Positioned(left: Space.s, child: MiniBackButton()),
                         Positioned(right: Space.s, child: MiniPlayButton()),
                       ],
@@ -511,6 +545,59 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> {
               ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+/// Steps through search results from the page, in place of the footer.
+class _ResultBar extends StatelessWidget {
+  const _ResultBar({
+    required this.found,
+    required this.onResults,
+    required this.onStep,
+    required this.onClose,
+  });
+
+  final SearchResult found;
+  final VoidCallback onResults;
+  final ValueChanged<int> onStep;
+  final VoidCallback onClose;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final several = found.hits.length > 1;
+    return ColoredBox(
+      color: theme.colorScheme.surfaceContainerHigh,
+      child: Row(
+        children: [
+          IconButton(
+            tooltip: 'End search',
+            onPressed: onClose,
+            icon: const Icon(Icons.close_rounded),
+          ),
+          Expanded(
+            child: TextButton(
+              onPressed: onResults,
+              child: Text(
+                '${found.index + 1} of ${found.hits.length} · All results',
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+          ),
+          IconButton(
+            tooltip: 'Previous result',
+            onPressed: several ? () => onStep(-1) : null,
+            icon: const Icon(Icons.keyboard_arrow_up_rounded),
+          ),
+          IconButton(
+            tooltip: 'Next result',
+            onPressed: several ? () => onStep(1) : null,
+            icon: const Icon(Icons.keyboard_arrow_down_rounded),
+          ),
+        ],
       ),
     );
   }

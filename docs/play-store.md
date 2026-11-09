@@ -10,6 +10,8 @@ Paste these into **Grow users > Store presence > Main store listing**.
 
 Your ebook and your audiobook, finally in one app.
 
+Three classic short stories with audio are included, so you can start the moment you install.
+
 TwoFold opens your own EPUB and PDF books with their audiobook files. Read a few pages at home, listen on the way to work, and carry on. Your page and your minute are saved by themselves.
 
 READ
@@ -32,7 +34,7 @@ MAKE IT YOURS
 PRIVATE BY DESIGN
 No account. No ads. No tracking. TwoFold has no internet permission, so your library stays on your phone.
 
-TwoFold does not include or sell books. It is for files you already have, and it can't open DRM-protected files.
+Apart from the free public domain samples, TwoFold does not include or sell books. It is for files you already have, and it can't open DRM-protected files.
 
 ## Assets (in `docs/store`)
 

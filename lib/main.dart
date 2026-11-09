@@ -14,6 +14,7 @@ import 'audio/player_controller.dart';
 import 'data/book_repo.dart';
 import 'data/db.dart';
 import 'features/reader/reader_screen.dart';
+import 'import/samples.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -39,6 +40,12 @@ Future<void> main() async {
   );
   handler.setSkipLength(Duration(seconds: settings.skipSeconds));
   handler.autoRewind = settings.autoRewind;
+
+  try {
+    await addSampleBooks(repo);
+  } catch (_) {
+    // Not worth stopping the app; the next launch tries again.
+  }
 
   final resume = await repo.getSetting(openBookKey);
 

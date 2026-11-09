@@ -3,6 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../app/settings.dart';
 import '../../app/theme.dart';
+import '../../audio/player_controller.dart';
+import '../../import/samples.dart';
+import '../library/providers.dart';
 import 'settings_sheet.dart';
 
 const appVersion = '0.1.0-beta';
@@ -81,6 +84,13 @@ class SettingsScreen extends ConsumerWidget {
           const _Heading('About'),
           _Group(
             children: [
+              ListTile(
+                title: const Text('Sample stories'),
+                subtitle:
+                    const Text('Free stories with audio, and who read them'),
+                trailing: const Icon(Icons.chevron_right_rounded),
+                onTap: () => _showSamples(context, ref),
+              ),
               const ListTile(
                 title: Text('Your books stay on this phone'),
                 subtitle: Text(
@@ -107,6 +117,44 @@ class SettingsScreen extends ConsumerWidget {
     );
   }
 }
+
+void _showSamples(BuildContext context, WidgetRef ref) => showDialog<void>(
+      context: context,
+      builder: (dialog) => AlertDialog(
+        title: const Text('Sample stories'),
+        content: SingleChildScrollView(
+          child: Text([
+            for (final s in sampleBooks)
+              '${s.title} by ${s.author}. Read by ${s.reader}.',
+            'Public domain recordings from LibriVox (librivox.org), '
+                'compressed to save space.',
+          ].join('\n\n')),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () async {
+              final added = await addSampleBooks(
+                  ref.read(bookRepoProvider),
+                  again: true);
+              ref.invalidate(libraryProvider);
+              if (!dialog.mounted) return;
+              Navigator.of(dialog).pop();
+              if (!context.mounted) return;
+              ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                content: Text(added == 0
+                    ? 'They are already in your library.'
+                    : 'Added to your library.'),
+              ));
+            },
+            child: const Text('Add to library'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(dialog).pop(),
+            child: const Text('Close'),
+          ),
+        ],
+      ),
+    );
 
 class _Heading extends StatelessWidget {
   const _Heading(this.text);
