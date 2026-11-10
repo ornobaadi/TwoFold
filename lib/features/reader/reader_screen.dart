@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../app/bubbly.dart';
+import '../../app/press.dart';
 import '../../app/router.dart';
 import '../../app/settings.dart';
 import '../../app/theme.dart';
@@ -49,6 +49,10 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> {
   double _percent = 0;
   ReaderActions? _actions;
   double? _dragPercent;
+
+  /// The page before a jump with the book slider, offered as a way back.
+  ({String location, String label})? _beforeJump;
+  Timer? _beforeTimer;
   bool _keptOn = false;
   String? _error;
   String? _audioError;
@@ -104,6 +108,7 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> {
   @override
   void dispose() {
     _hideTimer?.cancel();
+    _beforeTimer?.cancel();
     if (_keptOn) DeviceFiles.keepScreenOn(false);
     _repo.deleteSetting(openBookKey);
     super.dispose();
@@ -207,6 +212,31 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> {
   void _endSearch() {
     _actions?.clearHighlight();
     setState(() => _found = null);
+  }
+
+  void _jumpTo(double v) {
+    _beforeTimer?.cancel();
+    final far = (v - _percent).abs() > 0.01 && _location.isNotEmpty;
+    setState(() {
+      _dragPercent = null;
+      if (far) _beforeJump = (location: _location, label: _label);
+    });
+    _actions?.goToFraction(v);
+    if (far) {
+      _beforeTimer = Timer(const Duration(seconds: 10), () {
+        if (mounted) setState(() => _beforeJump = null);
+      });
+    }
+    _touched();
+  }
+
+  void _jumpBack() {
+    final before = _beforeJump;
+    if (before == null) return;
+    _beforeTimer?.cancel();
+    setState(() => _beforeJump = null);
+    _actions?.goTo(before.location);
+    _touched();
   }
 
   void _showPlaces() {
@@ -333,7 +363,9 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> {
                             style: theme.textTheme.labelMedium,
                           ),
                         ),
-                      if (hasAudio && !_showControls && _found == null) ...const [
+                      if (hasAudio &&
+                          !_showControls &&
+                          _found == null) ...const [
                         Positioned(left: Space.s, child: MiniBackButton()),
                         Positioned(right: Space.s, child: MiniPlayButton()),
                       ],
@@ -380,11 +412,21 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> {
                                 icon: const Icon(Icons.arrow_back_rounded),
                               ),
                               Expanded(
-                                child: Text(
-                                  _book.title,
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: theme.textTheme.titleMedium,
+                                child: Semantics(
+                                  button: true,
+                                  hint: 'About this book',
+                                  child: GestureDetector(
+                                    onTap: () {
+                                      _touched();
+                                      openBookDetails(context, _book);
+                                    },
+                                    child: Text(
+                                      _book.title,
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: theme.textTheme.titleMedium,
+                                    ),
+                                  ),
                                 ),
                               ),
                               if (_label.isNotEmpty)
@@ -409,31 +451,40 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> {
                               Space.l,
                               Space.s,
                             ),
-                            child: SizedBox(
-                              height: 32,
-                              child: SliderTheme(
-                                data: SliderTheme.of(context).copyWith(
-                                  padding: EdgeInsets.zero,
-                                  trackHeight: 8,
-                                  thumbSize: const WidgetStatePropertyAll(
-                                    Size(4, 28),
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                SizedBox(
+                                  height: 32,
+                                  child: SliderTheme(
+                                    data: SliderTheme.of(context).copyWith(
+                                      padding: EdgeInsets.zero,
+                                      trackHeight: 3,
+                                      thumbSize: const WidgetStatePropertyAll(
+                                        Size(4, 28),
+                                      ),
+                                    ),
+                                    child: Slider(
+                                      value: (_dragPercent ?? _percent).clamp(
+                                        0.0,
+                                        1.0,
+                                      ),
+                                      semanticFormatterCallback: (v) =>
+                                          '${(v * 100).round()}% through the book',
+                                      onChanged: (v) =>
+                                          setState(() => _dragPercent = v),
+                                      onChangeStart: (_) =>
+                                          _hideTimer?.cancel(),
+                                      onChangeEnd: _jumpTo,
+                                    ),
                                   ),
                                 ),
-                                child: Slider(
-                                  value: (_dragPercent ?? _percent).clamp(
-                                    0.0,
-                                    1.0,
-                                  ),
-                                  semanticFormatterCallback: (v) =>
-                                      '${(v * 100).round()}% through the book',
-                                  onChanged: (v) =>
-                                      setState(() => _dragPercent = v),
-                                  onChangeEnd: (v) {
-                                    setState(() => _dragPercent = null);
-                                    _actions?.goToFraction(v);
-                                  },
+                                _SliderNote(
+                                  dragging: _dragPercent,
+                                  before: _beforeJump?.label,
+                                  onBack: _jumpBack,
                                 ),
-                              ),
+                              ],
                             ),
                           ),
                       ],
@@ -612,7 +663,7 @@ class _Tool extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Expanded(
-    child: Bubbly(
+    child: Pressable(
       squish: 0.84,
       child: InkWell(
         customBorder: const StadiumBorder(),
@@ -780,4 +831,42 @@ class _Message extends StatelessWidget {
       ),
     ),
   );
+}
+
+/// Under the book slider: where the thumb is while dragging, and after a
+/// jump a way back to the page before it. Fixed height, so nothing shifts.
+class _SliderNote extends StatelessWidget {
+  const _SliderNote({
+    required this.dragging,
+    required this.before,
+    required this.onBack,
+  });
+
+  final double? dragging;
+  final String? before;
+  final VoidCallback onBack;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final d = dragging;
+    final b = before;
+    final Widget child;
+    if (d != null) {
+      child = Text(
+        'Go to ${(d * 100).round()}% of the book',
+        style: theme.textTheme.labelMedium?.copyWith(
+          fontWeight: FontWeight.w700,
+        ),
+      );
+    } else if (b != null) {
+      child = JumpBackChip(
+        label: b.isEmpty ? 'Back to where you were' : 'Back to $b',
+        onTap: onBack,
+      );
+    } else {
+      return const SizedBox.shrink();
+    }
+    return SizedBox(height: 36, child: Center(child: child));
+  }
 }

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../app/bubbly.dart';
+import '../../app/press.dart';
 import '../../app/format.dart';
 import '../../app/router.dart';
 import '../../app/settings.dart';
@@ -9,6 +9,7 @@ import '../../app/theme.dart';
 import '../../audio/player_controller.dart';
 import '../../data/models.dart';
 import 'book_card.dart';
+import 'cover_picker.dart';
 import 'providers.dart';
 
 /// Filters by title or author, then sorts. Recent keeps the order it was given.
@@ -44,10 +45,13 @@ List<LibraryEntry> arrangeLibrary(
 }
 
 class LibraryScreen extends ConsumerStatefulWidget {
-  const LibraryScreen({super.key, this.resumeBookId});
+  const LibraryScreen({super.key, this.resumeBookId, this.onFind});
 
   /// Book that was open when the app last closed; reopened right away.
   final String? resumeBookId;
+
+  /// Shows the Find tab; without it, Find opens as its own screen.
+  final VoidCallback? onFind;
 
   @override
   ConsumerState<LibraryScreen> createState() => _LibraryScreenState();
@@ -80,6 +84,13 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
     if (book != null) _open(book);
   }
 
+  Future<void> _find() async {
+    final tab = widget.onFind;
+    if (tab != null) return tab();
+    await openFind(context);
+    if (mounted) ref.invalidate(libraryProvider);
+  }
+
   void _showActions(LibraryEntry entry) {
     showModalBottomSheet<void>(
       context: context,
@@ -104,10 +115,27 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
             ),
             ListTile(
               contentPadding: const EdgeInsets.symmetric(horizontal: Space.xl),
+              leading: const Icon(Icons.info_outline_rounded),
+              title: const Text('About this book'),
+              subtitle: const Text('Details, rating and where it came from'),
+              onTap: () {
+                Navigator.of(sheet).pop();
+                openBookDetails(context, entry.book);
+              },
+            ),
+            ListTile(
+              contentPadding: const EdgeInsets.symmetric(horizontal: Space.xl),
               leading: const Icon(Icons.edit_outlined),
               title: const Text('Edit book'),
               subtitle: const Text('Title, author, cover and audio'),
               onTap: () => _edit(sheet, entry.book),
+            ),
+            ListTile(
+              contentPadding: const EdgeInsets.symmetric(horizontal: Space.xl),
+              leading: const Icon(Icons.image_outlined),
+              title: const Text('Change cover'),
+              subtitle: const Text('Pick from Open Library or your phone'),
+              onTap: () => _changeCover(sheet, entry.book),
             ),
             ListTile(
               contentPadding: const EdgeInsets.symmetric(horizontal: Space.xl),
@@ -124,6 +152,14 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
         ),
       ),
     );
+  }
+
+  Future<void> _changeCover(BuildContext sheet, Book book) async {
+    Navigator.of(sheet).pop();
+    final path = await showCoverPicker(context, book: book);
+    if (path == null || !mounted) return;
+    await ref.read(bookRepoProvider).setCover(book.id, path);
+    ref.invalidate(libraryProvider);
   }
 
   Future<void> _edit(BuildContext sheet, Book book) async {
@@ -174,14 +210,17 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
         break;
       }
     }
+    // With nothing opened yet, the newest book is offered to start.
+    final featured = recent ?? (entries.isEmpty ? null : entries.first);
     final filtering = _query.trim().isNotEmpty;
     final width = MediaQuery.sizeOf(context).width - Space.l * 2;
-    final columns = (width / 105).floor().clamp(2, 8);
+    // Three across reads best on phones; tablets get more.
+    final columns = width < 600 ? 3 : (width / 140).floor().clamp(4, 8);
     final itemWidth = (width - Space.l * (columns - 1)) / columns;
     final textScale = MediaQuery.textScalerOf(context).scale(1);
 
     return Scaffold(
-      floatingActionButton: Bubbly(
+      floatingActionButton: Pressable(
         child: FloatingActionButton.extended(
           onPressed: _add,
           icon: const Icon(Icons.add_rounded),
@@ -204,13 +243,10 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
                     Expanded(
                       child: Text(
                         'TwoFold',
-                        style: theme.textTheme.displaySmall,
+                        style: theme.textTheme.displaySmall?.copyWith(
+                          fontSize: 22,
+                        ),
                       ),
-                    ),
-                    IconButton(
-                      tooltip: 'Settings',
-                      onPressed: () => openSettings(context),
-                      icon: const Icon(Icons.settings_outlined),
                     ),
                   ],
                 ),
@@ -229,24 +265,54 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
             else if (library.hasValue && entries.isEmpty)
               SliverFillRemaining(
                 hasScrollBody: false,
-                child: _Empty(onImport: _add),
+                child: _Empty(onImport: _add, onFind: _find),
               )
             else ...[
-              if (recent != null && !filtering)
+              if (featured != null && !filtering) ...[
+                SliverPadding(
+                  padding: const EdgeInsets.fromLTRB(
+                    Space.l,
+                    Space.s,
+                    Space.l,
+                    Space.xl,
+                  ),
+                  sliver: SliverToBoxAdapter(
+                    child: _Featured(
+                      entry: featured,
+                      started: recent != null,
+                      onOpen: () => _open(featured.book),
+                    ),
+                  ),
+                ),
                 SliverPadding(
                   padding: const EdgeInsets.fromLTRB(
                     Space.l,
                     0,
                     Space.l,
-                    Space.l,
+                    Space.m,
                   ),
                   sliver: SliverToBoxAdapter(
-                    child: _ContinueCard(
-                      entry: recent,
-                      onOpen: () => _open(recent!.book),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            'On your shelf',
+                            style: theme.textTheme.titleLarge,
+                          ),
+                        ),
+                        Text(
+                          entries.length == 1
+                              ? '1 book'
+                              : '${entries.length} books',
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            color: theme.colorScheme.onSurfaceVariant,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ),
+              ],
               SliverPadding(
                 padding: const EdgeInsets.fromLTRB(
                   Space.l,
@@ -261,7 +327,7 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
                         child: SearchBar(
                           hintText: 'Search your books',
                           elevation: const WidgetStatePropertyAll(0),
-                          constraints: const BoxConstraints(minHeight: 52),
+                          constraints: const BoxConstraints(minHeight: 44),
                           leading: const Padding(
                             padding: EdgeInsets.only(left: Space.s),
                             child: Icon(Icons.search_rounded),
@@ -315,8 +381,8 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
                   gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                     crossAxisCount: columns,
                     crossAxisSpacing: Space.l,
-                    mainAxisSpacing: Space.xl,
-                    mainAxisExtent: itemWidth * 1.5 + 84 * textScale,
+                    mainAxisSpacing: Space.l,
+                    mainAxisExtent: itemWidth * 1.5 + 78 * textScale,
                   ),
                   itemCount: shown.length,
                   itemBuilder: (_, i) => BookCard(
@@ -335,9 +401,10 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
 }
 
 class _Empty extends StatelessWidget {
-  const _Empty({required this.onImport});
+  const _Empty({required this.onImport, required this.onFind});
 
   final VoidCallback onImport;
+  final VoidCallback onFind;
 
   @override
   Widget build(BuildContext context) {
@@ -351,13 +418,13 @@ class _Empty extends StatelessWidget {
             width: 96,
             height: 96,
             decoration: BoxDecoration(
-              color: theme.colorScheme.primaryContainer,
-              borderRadius: BorderRadius.circular(32),
+              color: theme.colorScheme.surfaceContainer,
+              borderRadius: BorderRadius.circular(Space.cardRadius),
             ),
             child: Icon(
               Icons.auto_stories_outlined,
               size: 44,
-              color: theme.colorScheme.onPrimaryContainer,
+              color: theme.colorScheme.onSurfaceVariant,
             ),
           ),
           const SizedBox(height: Space.xl),
@@ -372,17 +439,40 @@ class _Empty extends StatelessWidget {
             textAlign: TextAlign.center,
             style: theme.textTheme.bodyLarge,
           ),
+          const SizedBox(height: Space.l),
+          FilledButton.tonalIcon(
+            style: FilledButton.styleFrom(minimumSize: const Size(0, 48)),
+            onPressed: onFind,
+            icon: const Icon(Icons.travel_explore_rounded),
+            label: const Text('Find free books'),
+          ),
         ],
       ),
     );
   }
 }
 
-/// The one thing most people came here to do: carry on.
-class _ContinueCard extends ConsumerWidget {
-  const _ContinueCard({required this.entry, required this.onOpen});
+/// The hero label: carry on at this time of day, or start something new.
+String readLabel(DateTime now, {required bool started}) {
+  if (!started) return 'Start here';
+  final h = now.hour;
+  if (h >= 5 && h < 12) return "This morning's read";
+  if (h >= 12 && h < 18) return "This afternoon's read";
+  return "Tonight's read";
+}
+
+/// The book to carry on with (or to start) as the hero of the home screen.
+/// Colours come from the theme's roles, so it follows the chosen palette and
+/// background.
+class _Featured extends ConsumerWidget {
+  const _Featured({
+    required this.entry,
+    required this.started,
+    required this.onOpen,
+  });
 
   final LibraryEntry entry;
+  final bool started;
   final VoidCallback onOpen;
 
   @override
@@ -397,6 +487,7 @@ class _ContinueCard extends ConsumerWidget {
         ? (ref.watch(positionProvider).value ?? entry.audioPosition)
         : entry.audioPosition;
     final percent = entry.progress?.readPercent ?? 0;
+    final total = entry.audioTotal;
 
     Future<void> toggle() async {
       if (playing) return handler.pause();
@@ -404,98 +495,125 @@ class _ContinueCard extends ConsumerWidget {
       await handler.play();
     }
 
-    return Bubbly(
-      squish: 0.97,
-      child: Material(
-        color: s.primaryContainer,
-        borderRadius: BorderRadius.circular(Space.cardRadius),
-        clipBehavior: Clip.antiAlias,
-        child: InkWell(
-          onTap: onOpen,
-          child: Padding(
-            padding: const EdgeInsets.all(Space.l),
-            child: Row(
-              children: [
-                SizedBox(
-                  width: 72,
-                  child: BookCover(book: entry.book, titleSize: 8.5),
-                ),
-                const SizedBox(width: Space.l),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Continue',
-                        style: theme.textTheme.labelLarge?.copyWith(
-                          color: s.onPrimaryContainer,
-                        ),
-                      ),
-                      const SizedBox(height: Space.xs),
-                      Text(
-                        entry.book.title,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                        style: theme.textTheme.titleLarge?.copyWith(
-                          color: s.onPrimaryContainer,
-                        ),
-                      ),
-                      const SizedBox(height: Space.s),
-                      WavyProgress(
-                        value: percent,
-                        color: s.primary,
-                        track: s.onPrimaryContainer.withValues(alpha: 0.15),
-                      ),
-                      const SizedBox(height: Space.xs),
-                      Text(
-                        [
-                          '${(percent * 100).round()}% read',
-                          if (entry.hasAudio) formatTime(position),
-                        ].join(' · '),
-                        style: theme.textTheme.labelMedium?.copyWith(
-                          color: s.onPrimaryContainer,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                if (entry.hasAudio) ...[
-                  const SizedBox(width: Space.s),
-                  Semantics(
-                    button: true,
-                    label: playing ? 'Pause' : 'Play',
-                    child: Bubbly(
-                      squish: 0.84,
-                      child: GestureDetector(
-                        onTap: toggle,
-                        child: AnimatedContainer(
-                          duration: springDuration,
-                          curve: springCurve,
-                          width: 64,
-                          height: 64,
-                          decoration: BoxDecoration(
-                            color: s.primary,
-                            borderRadius: BorderRadius.circular(
-                              playing ? 20 : 32,
-                            ),
-                          ),
-                          child: Icon(
-                            playing
-                                ? Icons.pause_rounded
-                                : Icons.play_arrow_rounded,
-                            size: 34,
-                            color: s.onPrimary,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ],
-            ),
+
+    final muted = theme.textTheme.bodyMedium?.copyWith(color: s.onSurfaceVariant);
+    final audioLine = !entry.hasAudio || total <= Duration.zero
+        ? null
+        : started && position > Duration.zero
+            ? '${formatTime(total - position)} of audio left'
+            : '${formatTime(total)} of audio';
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Text(
+          readLabel(DateTime.now(), started: started).toUpperCase(),
+          style: theme.textTheme.labelLarge?.copyWith(
+            color: s.primary,
+            letterSpacing: 1.4,
           ),
         ),
-      ),
+        const SizedBox(height: Space.m),
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Semantics(
+              button: true,
+              label: 'Open ${entry.book.title}',
+              child: Pressable(
+                child: GestureDetector(
+                  onTap: onOpen,
+                  onLongPress: () => openBookDetails(context, entry.book),
+                  child: SizedBox(
+                    width: 132,
+                    child: BookCover(book: entry.book, titleSize: 13),
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(width: Space.l),
+            Expanded(
+              child: SizedBox(
+                height: 198,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      entry.book.title,
+                      maxLines: 4,
+                      overflow: TextOverflow.ellipsis,
+                      style: theme.textTheme.headlineMedium?.copyWith(
+                        fontWeight: FontWeight.w700,
+                        height: 1.12,
+                      ),
+                    ),
+                    if (entry.book.author != null) ...[
+                      const SizedBox(height: Space.xs),
+                      Text(
+                        entry.book.author!,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: muted,
+                      ),
+                    ],
+                    const Spacer(),
+                    Text(
+                      started ? '${(percent * 100).round()}% read' : 'Not opened yet',
+                      style: theme.textTheme.titleSmall,
+                    ),
+                    if (audioLine != null) Text(audioLine, style: muted),
+                    if (started) ...[
+                      const SizedBox(height: Space.s),
+                      ProgressLine(
+                        value: percent,
+                        color: s.primary,
+                        track: s.onSurface.withValues(alpha: 0.12),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: Space.l),
+        Row(
+          children: [
+            Expanded(
+              child: Pressable(
+                child: FilledButton.icon(
+                  style: FilledButton.styleFrom(
+                    minimumSize: const Size(0, 44),
+                    backgroundColor: s.onSurface,
+                    foregroundColor: s.surface,
+                  ),
+                  onPressed: onOpen,
+                  icon: const Icon(Icons.menu_book_rounded),
+                  label: Text(started ? 'Keep reading' : 'Start reading'),
+                ),
+              ),
+            ),
+            if (entry.hasAudio) ...[
+              const SizedBox(width: Space.m),
+              Expanded(
+                child: Pressable(
+                  child: FilledButton.icon(
+                    style: FilledButton.styleFrom(
+                      minimumSize: const Size(0, 44),
+                      backgroundColor: s.primary,
+                      foregroundColor: s.onPrimary,
+                    ),
+                    onPressed: toggle,
+                    icon: Icon(
+                      playing ? Icons.pause_rounded : Icons.play_arrow_rounded,
+                    ),
+                    label: Text(playing ? 'Pause' : 'Listen'),
+                  ),
+                ),
+              ),
+            ],
+          ],
+        ),
+      ],
     );
   }
 }

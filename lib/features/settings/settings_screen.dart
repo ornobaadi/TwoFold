@@ -8,7 +8,7 @@ import '../../import/samples.dart';
 import '../library/providers.dart';
 import 'settings_sheet.dart';
 
-const appVersion = '0.1.0-beta';
+const appVersion = '0.2.0';
 
 /// Settings for the whole app. Text options live in the reader's sheet too.
 class SettingsScreen extends ConsumerWidget {
@@ -30,10 +30,37 @@ class SettingsScreen extends ConsumerWidget {
           Space.xxl,
         ),
         children: [
-          const _Heading('Colour'),
-          const PaletteChooser(),
-          const _Heading('Background'),
-          const ThemeChooser(),
+          const _Heading('Look'),
+          _Group(
+            children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(Space.l, Space.l, Space.l, Space.m),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Background', style: theme.textTheme.bodyLarge),
+                    const SizedBox(height: Space.m),
+                    const ThemeChooser(),
+                  ],
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(Space.l, Space.m, Space.l, Space.s),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Accent', style: theme.textTheme.bodyLarge),
+                    Text(
+                      'Used for play, progress and your current choice.',
+                      style: theme.textTheme.bodySmall,
+                    ),
+                    const SizedBox(height: Space.xs),
+                    const PaletteChooser(),
+                  ],
+                ),
+              ),
+            ],
+          ),
           const _Heading('Reading'),
           _Group(
             children: [
@@ -94,7 +121,7 @@ class SettingsScreen extends ConsumerWidget {
               const ListTile(
                 title: Text('Your books stay on this phone'),
                 subtitle: Text(
-                  'TwoFold has no account and no internet access.',
+                  'TwoFold has no account. It uses the internet only when you find free books.',
                 ),
               ),
               ListTile(
@@ -163,35 +190,33 @@ class _Heading extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Padding(
-    padding: const EdgeInsets.fromLTRB(Space.xs, Space.xl, Space.xs, Space.s),
-    child: Text(
-      text,
-      style: Theme.of(context).textTheme.titleSmall
-          ?.copyWith(color: Theme.of(context).colorScheme.primary),
-    ),
-  );
+        padding: const EdgeInsets.fromLTRB(Space.xs, Space.xl, Space.xs, Space.s),
+        child: Text(
+          text.toUpperCase(),
+          style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                letterSpacing: 1.2,
+                fontWeight: FontWeight.w600,
+              ),
+        ),
+      );
 }
 
-/// Rows joined into one card: large outer corners, thin gaps between.
+/// Rows in one hairline card, divided by thin rules.
 class _Group extends StatelessWidget {
   const _Group({required this.children});
 
   final List<Widget> children;
 
   @override
-  Widget build(BuildContext context) => ClipRRect(
-    borderRadius: BorderRadius.circular(Space.xl),
-    child: Column(
-      children: [
-        for (var i = 0; i < children.length; i++)
-          Padding(
-            padding: EdgeInsets.only(top: i == 0 ? 0 : 2),
-            child: Material(
-              color: Theme.of(context).colorScheme.surfaceContainer,
-              child: children[i],
-            ),
-          ),
-      ],
-    ),
-  );
+  Widget build(BuildContext context) => Card(
+        clipBehavior: Clip.antiAlias,
+        child: Column(
+          children: [
+            for (var i = 0; i < children.length; i++) ...[
+              if (i > 0) const Divider(indent: Space.l),
+              children[i],
+            ],
+          ],
+        ),
+      );
 }

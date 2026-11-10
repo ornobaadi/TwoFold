@@ -2,6 +2,7 @@ import 'package:twofold/data/book_repo.dart';
 import 'package:twofold/data/db.dart';
 import 'package:twofold/data/models.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:twofold/features/reader/places_sheet.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
 void main() {
@@ -79,5 +80,26 @@ void main() {
     await repo.setSetting('skip', '10');
     await repo.setSetting('skip', '15');
     expect(await repo.getSetting('skip'), '15');
+  });
+
+  test('a place can be named, renamed and unnamed', () async {
+    await repo.addMark(PlaceMark(
+        id: 'm', bookId: book.id, location: '2:0', percent: 0.1,
+        pageLabel: 'Page 3', createdAt: 1));
+    expect((await repo.marksFor(book.id)).single.note, isNull);
+    await repo.renameMark('m', '  The letter  ');
+    expect((await repo.marksFor(book.id)).single.note, 'The letter');
+    await repo.renameMark('m', ' ');
+    expect((await repo.marksFor(book.id)).single.note, isNull);
+  });
+
+  test('saved times read like a person would say them', () {
+    final now = DateTime(2026, 11, 10, 15, 0);
+    expect(whenSaved(now.subtract(const Duration(seconds: 20)), now), 'Just now');
+    expect(whenSaved(now.subtract(const Duration(minutes: 12)), now), '12 min ago');
+    expect(whenSaved(DateTime(2026, 11, 10, 9, 5), now), 'Today 09:05');
+    expect(whenSaved(DateTime(2026, 11, 9, 23, 0), now), 'Yesterday');
+    expect(whenSaved(DateTime(2026, 11, 3), now), '3 Nov');
+    expect(whenSaved(DateTime(2025, 2, 1), now), '1 Feb 2025');
   });
 }

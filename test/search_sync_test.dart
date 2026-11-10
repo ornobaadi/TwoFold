@@ -1,4 +1,3 @@
-import 'package:twofold/audio/sync_map.dart';
 import 'package:twofold/data/book_repo.dart';
 import 'package:twofold/data/db.dart';
 import 'package:twofold/data/models.dart';
@@ -43,27 +42,6 @@ void main() {
       final doc = await loadEpubFile('test/fixtures/alice.epub');
       final all = doc.blocks.map((b) => b.runs.map((r) => r.text).join()).join('\n');
       expect(findMatches(all, 'white rabbit'), isNotEmpty);
-    });
-  });
-
-  group('sync', () {
-    test('even pace with no points', () {
-      final s = SyncMap(const []);
-      expect(s.audioAt(0.25), closeTo(0.25, 1e-9));
-      expect(s.bookAt(0.5), closeTo(0.5, 1e-9));
-    });
-
-    test('a confirmed point bends the estimate and round-trips', () {
-      final s = SyncMap(const [SyncPoint(0.5, 0.25)]);
-      expect(s.audioAt(0.5), closeTo(0.25, 1e-9));
-      expect(s.audioAt(0.75), closeTo(0.625, 1e-9));
-      expect(s.bookAt(s.audioAt(0.3)), closeTo(0.3, 1e-9));
-    });
-
-    test('contradicting points are ignored', () {
-      final s = SyncMap(const [SyncPoint(0.2, 0.5), SyncPoint(0.4, 0.3)]);
-      expect(s.audioAt(0.2), closeTo(0.5, 1e-9));
-      expect(s.audioAt(1), 1);
     });
   });
 

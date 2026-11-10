@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../app/bubbly.dart';
+import '../../app/press.dart';
 import '../../app/theme.dart';
 import '../../audio/player_controller.dart';
 
@@ -27,7 +27,7 @@ class _MiniButton extends StatelessWidget {
     return Semantics(
       button: true,
       label: label,
-      child: Bubbly(
+      child: Pressable(
         squish: 0.82,
         child: GestureDetector(
           behavior: HitTestBehavior.opaque,
@@ -43,8 +43,8 @@ class _MiniButton extends StatelessWidget {
                 decoration: BoxDecoration(
                   color: filled
                       ? c.accent
-                      : Theme.of(context).colorScheme.secondaryContainer,
-                  borderRadius: BorderRadius.circular(14),
+                      : Theme.of(context).colorScheme.surfaceContainerHigh,
+                  borderRadius: BorderRadius.circular(12),
                 ),
                 child: child,
               ),

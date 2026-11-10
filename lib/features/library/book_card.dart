@@ -2,7 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 
-import '../../app/bubbly.dart';
+import '../../app/press.dart';
 import '../../app/format.dart';
 import '../../app/theme.dart';
 import '../../data/models.dart';
@@ -49,29 +49,22 @@ class LibraryEntry {
 
 /// A 2:3 cover. A book without one gets a title page in the theme's colours.
 class BookCover extends StatelessWidget {
-  const BookCover({super.key, required this.book, this.titleSize = 11.5});
+  const BookCover({super.key, required this.book, this.titleSize = 10.5});
 
   final Book book;
   final double titleSize;
 
   @override
   Widget build(BuildContext context) {
-    final s = Theme.of(context).colorScheme;
     final path = book.coverPath;
-    // A book keeps the same colour; the shelf gets some variety.
-    final (bg, fg) = switch (book.title.codeUnits.fold(0, (a, b) => a + b) %
-        3) {
-      0 => (s.tertiaryContainer, s.onTertiaryContainer),
-      1 => (s.secondaryContainer, s.onSecondaryContainer),
-      _ => (s.primary, s.onPrimary),
-    };
+    final (bg, fg) = clothFor(book.title);
     return AspectRatio(
       aspectRatio: 2 / 3,
       child: Container(
         clipBehavior: Clip.antiAlias,
         decoration: BoxDecoration(
           color: bg,
-          borderRadius: BorderRadius.circular(Space.l),
+          borderRadius: BorderRadius.circular(Space.s),
         ),
         child: path != null && File(path).existsSync()
             ? Image.file(
@@ -80,9 +73,24 @@ class BookCover extends StatelessWidget {
                 cacheWidth: 480,
                 gaplessPlayback: true,
               )
+            // Too small for words: the first letter, like a monogram.
+            : titleSize < 8
+            ? Center(
+                child: Text(
+                  book.title.trim().isEmpty
+                      ? '?'
+                      : book.title.trim().characters.first.toUpperCase(),
+                  style: TextStyle(
+                    fontFamily: serifFont,
+                    fontSize: titleSize * 3,
+                    fontWeight: FontWeight.w600,
+                    color: fg,
+                  ),
+                ),
+              )
             // Set low on the page, clear of the options button.
             : Container(
-                padding: const EdgeInsets.all(Space.s + 2),
+                padding: const EdgeInsets.all(Space.s),
                 alignment: Alignment.bottomLeft,
                 child: Text(
                   book.title,
@@ -119,7 +127,7 @@ class BookCard extends StatelessWidget {
     final theme = Theme.of(context);
     final s = theme.colorScheme;
     final percent = entry.progress?.readPercent ?? 0;
-    return Bubbly(
+    return Pressable(
       squish: 0.94,
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
@@ -148,8 +156,8 @@ class BookCard extends StatelessWidget {
                           height: Space.minTarget,
                           child: Center(
                             child: Container(
-                              width: 30,
-                              height: 30,
+                              width: 26,
+                              height: 26,
                               decoration: BoxDecoration(
                                 color: s.surfaceContainerHigh,
                                 shape: BoxShape.circle,
@@ -170,7 +178,7 @@ class BookCard extends StatelessWidget {
               const SizedBox(height: Space.s),
               LinearProgressIndicator(
                 value: percent.clamp(0.0, 1.0),
-                minHeight: 4,
+                minHeight: 3,
                 borderRadius: BorderRadius.circular(2),
               ),
               const SizedBox(height: Space.s),

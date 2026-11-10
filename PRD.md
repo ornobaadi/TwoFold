@@ -49,7 +49,7 @@ One app, one screen. The book fills the screen, and small audio controls float o
 
 ### Could have (later)
 
-- Manual sync markers ("page 33 = 15:00") so the app can offer to jump the audio when you jump pages.
+- Page and audio sync (removed 2026-11-10: estimates were too rough; revisit with a better method).
 - Bookmarks with a short note.
 - Listening stats.
 
@@ -79,5 +79,5 @@ One app, one screen. The book fills the screen, and small audio controls float o
 ## 8. Constraints
 
 - Flutter, Android first. iOS later should cost little, because the libraries are cross-platform.
-- Fully offline. No network permission needed.
+- Works offline. The only network use is Find free books (search and download of public domain books from Gutenberg, the Internet Archive, Wikisource, or an OPDS catalog the user adds), started by the user.
 - Files stay on the device.

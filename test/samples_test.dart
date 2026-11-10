@@ -23,7 +23,7 @@ void main() {
         path: inMemoryDatabasePath, factory: databaseFactoryFfi);
     final repo = BookRepo(db);
 
-    expect(await addSampleBooks(repo), 3);
+    expect(await addSampleBooks(repo), 1);
     expect((await repo.allBooks()).map((b) => b.title),
         sampleBooks.map((s) => s.title));
     for (final s in sampleBooks) {

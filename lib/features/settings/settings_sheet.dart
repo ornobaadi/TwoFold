@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../app/bubbly.dart';
 import '../../app/settings.dart';
 import '../../app/theme.dart';
 
@@ -110,46 +109,30 @@ class SettingsSheet extends ConsumerWidget {
   }
 }
 
-/// The app's colour, as round blobs that puff up when chosen.
+/// The accent: five quiet colours as small dots, with their names.
 class PaletteChooser extends ConsumerWidget {
   const PaletteChooser({super.key, this.scrolling = false});
 
-  /// One swipeable row, for tight spaces. Otherwise all of them in a grid.
+  /// Kept for callers; five dots always fit in one row.
   final bool scrolling;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final s = ref.watch(settingsProvider);
     final notifier = ref.read(settingsProvider.notifier);
-    final dots = [
-      for (final p in AppPalette.values)
-        _PaletteDot(
-          palette: p,
-          dark: Theme.of(context).brightness == Brightness.dark,
-          selected: s.palette == p,
-          onTap: () => notifier.change(s.copyWith(palette: p)),
-        ),
-    ];
-    if (scrolling) {
-      return SizedBox(
-        height: 88,
-        child: ListView.separated(
-          scrollDirection: Axis.horizontal,
-          itemCount: dots.length,
-          separatorBuilder: (_, _) => const SizedBox(width: Space.xs),
-          itemBuilder: (_, i) => dots[i],
-        ),
-      );
-    }
-    return LayoutBuilder(
-      builder: (context, box) {
-        final width = (box.maxWidth - Space.xs * 3) / 4;
-        return Wrap(
-          spacing: Space.xs,
-          runSpacing: Space.s,
-          children: [for (final d in dots) SizedBox(width: width, child: d)],
-        );
-      },
+    final dark = Theme.of(context).brightness == Brightness.dark;
+    return Row(
+      children: [
+        for (final p in AppPalette.values)
+          Expanded(
+            child: _PaletteDot(
+              palette: p,
+              dark: dark,
+              selected: s.palette == p,
+              onTap: () => notifier.change(s.copyWith(palette: p)),
+            ),
+          ),
+      ],
     );
   }
 }
@@ -169,69 +152,48 @@ class _PaletteDot extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final look = schemeFor(
-      dark ? ReaderTheme.night : ReaderTheme.paper,
-      palette,
-    );
+    final theme = Theme.of(context);
+    final look = schemeFor(dark ? ReaderTheme.night : ReaderTheme.paper, palette);
     return Semantics(
       button: true,
       selected: selected,
       label: '${palette.label} colour',
       excludeSemantics: true,
-      child: Bubbly(
-        squish: 0.82,
-        child: GestureDetector(
-          behavior: HitTestBehavior.opaque,
-          onTap: onTap,
-          child: SizedBox(
-            width: 68,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                SizedBox(
-                  height: 60,
-                  child: Center(
-                    child: AnimatedContainer(
-                      duration: springDuration,
-                      curve: springCurve,
-                      width: selected ? 58 : 48,
-                      height: selected ? 58 : 48,
-                      clipBehavior: Clip.antiAlias,
-                      decoration: BoxDecoration(
-                        color: look.primary,
-                        borderRadius: BorderRadius.circular(selected ? 20 : 24),
-                      ),
-                      child: Stack(
-                        alignment: Alignment.center,
-                        children: [
-                          Positioned(
-                            right: -10,
-                            bottom: -10,
-                            child: Container(
-                              width: 32,
-                              height: 32,
-                              decoration: BoxDecoration(
-                                color: look.tertiary,
-                                shape: BoxShape.circle,
-                              ),
-                            ),
-                          ),
-                          if (selected)
-                            Icon(Icons.check_rounded, color: look.onPrimary),
-                        ],
-                      ),
-                    ),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(12),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: Space.s),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              AnimatedContainer(
+                duration: easeDuration,
+                curve: easeCurve,
+                width: 36,
+                height: 36,
+                padding: const EdgeInsets.all(3),
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: selected ? theme.colorScheme.onSurface : Colors.transparent,
+                    width: 2,
                   ),
                 ),
-                const SizedBox(height: 2),
-                Text(
-                  palette.label,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: Theme.of(context).textTheme.labelSmall,
+                child: DecoratedBox(
+                  decoration: BoxDecoration(color: look.primary, shape: BoxShape.circle),
                 ),
-              ],
-            ),
+              ),
+              const SizedBox(height: Space.xs),
+              Text(
+                palette.label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: theme.textTheme.labelSmall?.copyWith(
+                  fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+                ),
+              ),
+            ],
           ),
         ),
       ),
@@ -239,7 +201,7 @@ class _PaletteDot extends StatelessWidget {
   }
 }
 
-/// Auto, Paper, Sepia and Night, each drawn in its own colours.
+/// Auto, Paper, Sepia and Night, each shown as a small page in its colours.
 class ThemeChooser extends ConsumerWidget {
   const ThemeChooser({super.key});
 
@@ -278,52 +240,98 @@ class _Swatch extends StatelessWidget {
   final bool selected;
   final VoidCallback onTap;
 
+  Widget _page(ColorScheme look) => ColoredBox(
+        color: look.surface,
+        child: Padding(
+          padding: const EdgeInsets.all(8),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Aa',
+                maxLines: 1,
+                softWrap: false,
+                overflow: TextOverflow.clip,
+                style: TextStyle(
+                  fontFamily: serifFont,
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                  color: look.onSurface,
+                ),
+              ),
+              const Spacer(),
+              for (final w in const [1.0, 0.8, 0.9])
+                Padding(
+                  padding: const EdgeInsets.only(top: 3),
+                  child: FractionallySizedBox(
+                    widthFactor: w,
+                    child: Container(height: 2, color: look.onSurface.withValues(alpha: 0.35)),
+                  ),
+                ),
+              const SizedBox(height: 5),
+              Container(width: 18, height: 3, color: look.primary),
+            ],
+          ),
+        ),
+      );
+
   @override
   Widget build(BuildContext context) {
-    final look = schemeFor(
-      theme == ReaderTheme.system ? ReaderTheme.paper : theme,
-      palette,
-    );
+    final ui = Theme.of(context);
     final name = switch (theme) {
       ReaderTheme.system => 'Auto',
       ReaderTheme.paper => 'Paper',
       ReaderTheme.sepia => 'Sepia',
       ReaderTheme.night => 'Night',
     };
-    final primary = Theme.of(context).colorScheme.primary;
+    final page = theme == ReaderTheme.system
+        // Auto: half day, half night.
+        ? Row(
+            children: [
+              Expanded(child: _page(schemeFor(ReaderTheme.paper, palette))),
+              Expanded(child: _page(schemeFor(ReaderTheme.night, palette))),
+            ],
+          )
+        : _page(schemeFor(theme, palette));
     return Semantics(
       button: true,
       selected: selected,
       label: '$name theme',
       excludeSemantics: true,
-      child: Bubbly(
-        child: GestureDetector(
-          onTap: onTap,
-          child: AnimatedContainer(
-            duration: springDuration,
-            curve: springCurve,
-            height: 64,
-            alignment: Alignment.center,
-            decoration: BoxDecoration(
-              color: look.surface,
-              borderRadius: BorderRadius.circular(selected ? 28 : 16),
-              border: Border.all(
-                color: selected
-                    ? primary
-                    : Theme.of(context).colorScheme.outlineVariant,
-                width: selected ? 3 : 1,
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: onTap,
+        child: Column(
+          children: [
+            AnimatedContainer(
+              duration: easeDuration,
+              curve: easeCurve,
+              height: 100,
+              // The page is clipped to the same corners and the border is
+              // drawn over it, so the outline stays even when selected.
+              foregroundDecoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(
+                  color: selected
+                      ? ui.colorScheme.onSurface
+                      : ui.colorScheme.outlineVariant,
+                  width: selected ? 2.5 : 1,
+                ),
+              ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(10),
+                child: page,
               ),
             ),
-            child: Text(
+            const SizedBox(height: Space.xs),
+            Text(
               name,
-              style: TextStyle(
-                fontFamily: serifFont,
-                fontSize: 15,
-                fontWeight: FontWeight.w500,
-                color: look.onSurface,
+              style: ui.textTheme.labelMedium?.copyWith(
+                color: ui.colorScheme.onSurface,
+                fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
               ),
             ),
-          ),
+          ],
         ),
       ),
     );

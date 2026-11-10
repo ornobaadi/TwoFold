@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 class Book {
   const Book({
     required this.id,
@@ -131,6 +133,7 @@ class PlaceMark {
     this.audioMs,
     required this.createdAt,
     this.synced = false,
+    this.note,
   });
 
   final String id;
@@ -146,6 +149,9 @@ class PlaceMark {
   /// The user confirmed that page and audio match here.
   final bool synced;
 
+  /// The user's name for this place, if they gave one.
+  final String? note;
+
   Map<String, Object?> toMap() => {
         'id': id,
         'book_id': bookId,
@@ -155,6 +161,7 @@ class PlaceMark {
         'audio_ms': audioMs,
         'created_at': createdAt,
         'synced': synced ? 1 : 0,
+        'note': note,
       };
 
   factory PlaceMark.fromMap(Map<String, Object?> m) => PlaceMark(
@@ -166,5 +173,92 @@ class PlaceMark {
         audioMs: m['audio_ms'] as int?,
         createdAt: m['created_at'] as int,
         synced: m['synced'] == 1,
+        note: m['note'] as String?,
       );
+}
+
+/// Where a book came from and what Open Library says about it.
+class BookDetails {
+  const BookDetails({
+    required this.bookId,
+    this.source,
+    this.sourceId,
+    this.sourceUrl,
+    this.summary,
+    this.description,
+    this.subjects = const [],
+    this.rating,
+    this.ratingCount = 0,
+    this.wantToRead = 0,
+    this.firstYear,
+    this.pages,
+    this.olWork,
+    required this.updatedAt,
+  });
+
+  final String bookId;
+
+  /// The Find source's name ("Project Gutenberg"), when it came from Find.
+  final String? source;
+  final String? sourceId;
+  final String? sourceUrl;
+
+  /// The source's own short description.
+  final String? summary;
+
+  /// Open Library's description.
+  final String? description;
+  final List<String> subjects;
+  final double? rating;
+  final int ratingCount;
+  final int wantToRead;
+  final int? firstYear;
+  final int? pages;
+
+  /// Open Library's work, as "/works/OL123W".
+  final String? olWork;
+  final int updatedAt;
+
+  /// True once Open Library has been asked (it may have known nothing).
+  bool get lookedUp => olWork != null || rating != null || description != null;
+
+  Map<String, Object?> toMap() => {
+    'book_id': bookId,
+    'source': source,
+    'source_id': sourceId,
+    'source_url': sourceUrl,
+    'summary': summary,
+    'description': description,
+    'subjects': jsonEncode(subjects),
+    'rating': rating,
+    'rating_count': ratingCount,
+    'want_to_read': wantToRead,
+    'first_year': firstYear,
+    'pages': pages,
+    'ol_work': olWork,
+    'updated_at': updatedAt,
+  };
+
+  factory BookDetails.fromMap(Map<String, Object?> m) {
+    var subjects = const <String>[];
+    try {
+      subjects = List<String>.from(jsonDecode(m['subjects'] as String? ?? '[]') as List);
+    } catch (_) {}
+    return BookDetails(
+      bookId: m['book_id'] as String,
+      source: m['source'] as String?,
+      sourceId: m['source_id'] as String?,
+      sourceUrl: m['source_url'] as String?,
+      summary: m['summary'] as String?,
+      description: m['description'] as String?,
+      subjects: subjects,
+      rating: (m['rating'] as num?)?.toDouble(),
+      ratingCount: m['rating_count'] as int? ?? 0,
+      wantToRead: m['want_to_read'] as int? ?? 0,
+      firstYear: m['first_year'] as int?,
+      pages: m['pages'] as int?,
+      olWork: m['ol_work'] as String?,
+      updatedAt: m['updated_at'] as int,
+    );
+  }
 }

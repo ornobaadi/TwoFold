@@ -87,8 +87,22 @@ class Importer {
 
   /// Copies a picked EPUB/PDF and reads its title, author and cover.
   /// Throws [ImportError] if the file can't be used.
-  Future<DraftBook> importBookFile(PickedFile file) async {
-    final ext = p.extension(file.name).toLowerCase();
+  Future<DraftBook> importBookFile(PickedFile file) =>
+      _ingest(file.name, (dest) => DeviceFiles.copy(file.uri, dest));
+
+  /// Moves a book file that is already in app storage (a download) into the
+  /// library's folder, and reads it like a picked file. [fileName] decides the
+  /// type, and a title when the book has none inside.
+  Future<DraftBook> importLocalFile(String path, {required String fileName}) =>
+      _ingest(fileName, (dest) async {
+        await File(path).copy(dest);
+      });
+
+  Future<DraftBook> _ingest(
+    String name,
+    Future<void> Function(String dest) put,
+  ) async {
+    final ext = p.extension(name).toLowerCase();
     if (!bookExtensions.contains(ext)) {
       throw const ImportError('Choose an EPUB or PDF file.');
     }
@@ -96,10 +110,10 @@ class Importer {
     final dir = await _bookDir(id);
     final path = p.join(dir.path, 'book$ext');
     try {
-      await DeviceFiles.copy(file.uri, path);
+      await put(path);
       return ext == '.epub'
-          ? await _inspectEpub(id, path, file.name, dir.path)
-          : await _inspectPdf(id, path, file.name, dir.path);
+          ? await _inspectEpub(id, path, name, dir.path)
+          : await _inspectPdf(id, path, name, dir.path);
     } catch (e) {
       await discard(id);
       if (e is ImportError) rethrow;
@@ -171,6 +185,15 @@ class Importer {
     final ext = p.extension(file.name).toLowerCase();
     final path = p.join(dir.path, 'cover_${_uuid.v4()}$ext');
     await DeviceFiles.copy(file.uri, path);
+    return path;
+  }
+
+  /// Writes a downloaded picture in as the book's cover, under a new name.
+  Future<String> saveCoverBytes(String bookId, Uint8List bytes) async {
+    final dir = await _bookDir(bookId);
+    final png = bytes.length > 1 && bytes[0] == 0x89;
+    final path = p.join(dir.path, 'cover_${_uuid.v4()}${png ? '.png' : '.jpg'}');
+    await File(path).writeAsBytes(bytes, flush: true);
     return path;
   }
 

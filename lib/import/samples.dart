@@ -21,16 +21,13 @@ class SampleBook {
   String get id => 'sample-$asset';
 }
 
-/// Public domain stories with LibriVox recordings, so there is something to
-/// read and hear right after installing. The app has no internet, so they ship
-/// inside it.
+/// A short public domain story with a LibriVox recording (one only, to keep
+/// the app small; more are in Find free books), so there is something to
+/// read and hear right after installing, with nothing to search for or
+/// download. They ship inside the app.
 const sampleBooks = [
   SampleBook('story-of-an-hour', 'The Story of an Hour', 'Kate Chopin',
       'caseyveronica', 345088),
-  SampleBook('emperors-new-clothes', "The Emperor's New Clothes",
-      'Hans Christian Andersen', 'Phil Chenevert', 688041),
-  SampleBook('lady-or-the-tiger', 'The Lady, or the Tiger?', 'Frank R. Stockton',
-      'David Federman', 1021726),
 ];
 
 /// Puts the samples in the library once, so a removed one stays removed.

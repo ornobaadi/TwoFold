@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../app/bubbly.dart';
+import '../../app/press.dart';
 import '../../app/format.dart';
 import '../../app/theme.dart';
 import '../../audio/audio_handler.dart';
@@ -11,6 +11,7 @@ import '../../import/device_files.dart';
 import '../../import/importer.dart';
 import '../../import/names.dart';
 import 'book_card.dart';
+import 'cover_picker.dart';
 import 'providers.dart';
 
 /// Adds a book, or edits one: choose the book file, choose all audio files at
@@ -48,8 +49,9 @@ class _NewBookScreenState extends ConsumerState<NewBookScreen> {
       _title.text = book.title;
       _author.text = book.author ?? '';
       ref.read(bookRepoProvider).tracksFor(book.id).then((tracks) {
-        if (mounted)
+        if (mounted) {
           setState(() => _audio.addAll(tracks.map(AudioDraft.existing)));
+        }
       });
     }
   }
@@ -117,14 +119,20 @@ class _NewBookScreenState extends ConsumerState<NewBookScreen> {
   Future<void> _pickCover() async {
     final id = _editing?.id ?? _draft?.id;
     if (id == null) return;
-    final file = await DeviceFiles.pickImage();
-    if (file == null) return;
-    try {
-      final path = await ref.read(importerProvider).saveCover(id, file);
-      if (mounted) setState(() => _coverPath = path);
-    } catch (_) {
-      if (mounted) setState(() => _error = 'That image could not be used.');
-    }
+    final author = _author.text.trim();
+    final path = await showCoverPicker(
+      context,
+      book: Book(
+        id: id,
+        title: _title.text.trim().isEmpty ? 'Untitled' : _title.text.trim(),
+        author: author.isEmpty ? null : author,
+        format: _editing?.format ?? _draft!.format,
+        filePath: _editing?.filePath ?? _draft!.path,
+        coverPath: _coverPath ?? _editing?.coverPath ?? _draft?.coverPath,
+        addedAt: 0,
+      ),
+    );
+    if (path != null && mounted) setState(() => _coverPath = path);
   }
 
   /// For another narrator: the new files take over from all the old ones.
@@ -425,7 +433,7 @@ class _NewBookScreenState extends ConsumerState<NewBookScreen> {
                   Space.l,
                   Space.l,
                 ),
-                child: Bubbly(
+                child: Pressable(
                   squish: 0.96,
                   child: FilledButton(
                     onPressed: _hasBook && !_busy && !_readingBook
@@ -452,7 +460,7 @@ class _NewBookScreenState extends ConsumerState<NewBookScreen> {
     final editing = _editing;
     if (draft == null && editing == null) {
       return Material(
-        color: theme.colorScheme.primaryContainer,
+        color: theme.colorScheme.surfaceContainer,
         borderRadius: BorderRadius.circular(Space.cardRadius),
         clipBehavior: Clip.antiAlias,
         child: InkWell(
@@ -467,13 +475,13 @@ class _NewBookScreenState extends ConsumerState<NewBookScreen> {
                     : Icon(
                         Icons.menu_book_outlined,
                         size: 36,
-                        color: theme.colorScheme.onPrimaryContainer,
+                        color: theme.colorScheme.onSurface,
                       ),
                 const SizedBox(height: Space.m),
                 Text(
                   _readingBook ? 'Reading the book…' : 'Choose an EPUB or PDF',
                   style: theme.textTheme.titleMedium?.copyWith(
-                    color: theme.colorScheme.onPrimaryContainer,
+                    color: theme.colorScheme.onSurface,
                   ),
                 ),
               ],

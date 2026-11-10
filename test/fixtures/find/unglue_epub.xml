@@ -1,0 +1,609 @@
+<?xml version="1.0" encoding="UTF-8"?>
+    <feed xmlns:dcterms="http://purl.org/dc/terms/"
+      xmlns:opds="http://opds-spec.org/"
+      xmlns="http://www.w3.org/2005/Atom"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xmlns:schema="http://schema.org/"
+      xsi:noNamespaceSchemaLocation="http://www.kbcafe.com/rss/atom.xsd.xml"
+      xsi:schemaLocation="http://purl.org/dc/elements/1.1/ http://dublincore.org/schemas/xmls/qdc/2008/02/11/dc.xsd
+      http://purl.org/dc/terms/ http://dublincore.org/schemas/xmls/qdc/2008/02/11/dcterms.xsd">
+      <title>
+ Unglue.it eBooks available in format: epub - sorted by popular
+</title><id>
+ https://unglue.it/api/opds/epub/?order_by=popular
+</id><updated>
+ 2026-11-10T11:51:13.703357+00:00
+</updated><author>
+ <name>
+  unglue.it
+ </name>
+ <uri>
+  https://unglue.it
+ </uri>
+</author><link href="https://unglue.it/api/opds/epub/?order_by=popular" rel="start" title="First 10" type="application/atom+xml; profile=opds-catalog ;kind=acquisition; charset=utf-8"/>
+<link href="https://unglue.it/api/opds/epub/?order_by=popular&amp;page=1" rel="next" title="Next 10" type="application/atom+xml; profile=opds-catalog ;kind=acquisition; charset=utf-8"/>
+<link href="https://unglue.it/api/opds/epub/?order_by=popular" opds:activeFacet="true" opds:facetGroup="Order" rel="http://opds-spec.org/facet" title="Sorted by popularity" type="application/atom+xml; profile=opds-catalog ;kind=acquisition; charset=utf-8"/>
+<link href="https://unglue.it/api/opds/epub/?order_by=newest" opds:facetGroup="Order" rel="http://opds-spec.org/facet" title="Sorted by newest" type="application/atom+xml; profile=opds-catalog ;kind=acquisition; charset=utf-8"/>
+<link href="https://unglue.it/api/opds/epub/by-nc-nd/?order_by=popular" opds:facetGroup="License" rel="http://opds-spec.org/facet" title="license: Creative Commons Attribution-NonCommercial-NoDerivs" type="application/atom+xml; profile=opds-catalog ;kind=acquisition; charset=utf-8"/>
+<link href="https://unglue.it/api/opds/epub/by-nc-sa/?order_by=popular" opds:facetGroup="License" rel="http://opds-spec.org/facet" title="license: Creative Commons Attribution-NonCommercial-ShareAlike" type="application/atom+xml; profile=opds-catalog ;kind=acquisition; charset=utf-8"/>
+<link href="https://unglue.it/api/opds/epub/by-nc/?order_by=popular" opds:facetGroup="License" rel="http://opds-spec.org/facet" title="license: Creative Commons Attribution-NonCommercial" type="application/atom+xml; profile=opds-catalog ;kind=acquisition; charset=utf-8"/>
+<link href="https://unglue.it/api/opds/epub/by-nd/?order_by=popular" opds:facetGroup="License" rel="http://opds-spec.org/facet" title="license: Creative Commons Attribution-NoDerivs" type="application/atom+xml; profile=opds-catalog ;kind=acquisition; charset=utf-8"/>
+<link href="https://unglue.it/api/opds/epub/by-sa/?order_by=popular" opds:facetGroup="License" rel="http://opds-spec.org/facet" title="license: Creative Commons Attribution-ShareAlike" type="application/atom+xml; profile=opds-catalog ;kind=acquisition; charset=utf-8"/>
+<link href="https://unglue.it/api/opds/epub/by/?order_by=popular" opds:facetGroup="License" rel="http://opds-spec.org/facet" title="license: Creative Commons Attribution" type="application/atom+xml; profile=opds-catalog ;kind=acquisition; charset=utf-8"/>
+<link href="https://unglue.it/api/opds/epub/cc0/?order_by=popular" opds:facetGroup="License" rel="http://opds-spec.org/facet" title="license: No Rights Reserved (CC0)" type="application/atom+xml; profile=opds-catalog ;kind=acquisition; charset=utf-8"/>
+<link href="https://unglue.it/api/opds/epub/gdfl/?order_by=popular" opds:facetGroup="License" rel="http://opds-spec.org/facet" title="license: GNU Free Documentation License" type="application/atom+xml; profile=opds-catalog ;kind=acquisition; charset=utf-8"/>
+<link href="https://unglue.it/api/opds/epub/lal/?order_by=popular" opds:facetGroup="License" rel="http://opds-spec.org/facet" title="license: Licence Art Libre" type="application/atom+xml; profile=opds-catalog ;kind=acquisition; charset=utf-8"/>
+<link href="https://unglue.it/api/opds/epub/opensource/?order_by=popular" opds:facetGroup="License" rel="http://opds-spec.org/facet" title="license: OSI Approved License" type="application/atom+xml; profile=opds-catalog ;kind=acquisition; charset=utf-8"/>
+<link href="https://unglue.it/api/opds/epub/pd-us/?order_by=popular" opds:facetGroup="License" rel="http://opds-spec.org/facet" title="license: Public Domain, US" type="application/atom+xml; profile=opds-catalog ;kind=acquisition; charset=utf-8"/>
+<link href="https://unglue.it/api/opds/epub/doab/?order_by=popular" opds:facetGroup="Collection" rel="http://opds-spec.org/facet" title="indexed in DOAB" type="application/atom+xml; profile=opds-catalog ;kind=acquisition; charset=utf-8"/>
+<link href="https://unglue.it/api/opds/epub/gtbg/?order_by=popular" opds:facetGroup="Collection" rel="http://opds-spec.org/facet" title="available in Project Gutenberg" type="application/atom+xml; profile=opds-catalog ;kind=acquisition; charset=utf-8"/>
+<link href="https://unglue.it/api/opds/epub/-doab/?order_by=popular" opds:facetGroup="Collection" rel="http://opds-spec.org/facet" title="not in DOAB" type="application/atom+xml; profile=opds-catalog ;kind=acquisition; charset=utf-8"/>
+<link href="https://unglue.it/api/opds/epub/-gtbg/?order_by=popular" opds:facetGroup="Collection" rel="http://opds-spec.org/facet" title="not from Project Gutenberg" type="application/atom+xml; profile=opds-catalog ;kind=acquisition; charset=utf-8"/>
+<entry>
+ <title>
+  So You Want to Be a Librarian
+ </title>
+ <id>
+  https://unglue.it/api/id/work/76348/
+ </id>
+ <updated>
+  2020-06-20T16:40:44
+ </updated>
+ <link dcterms:rights="CC BY-SA" href="https://unglue.it/download_ebook/249663/?feed=opds" rel="http://opds-spec.org/acquisition/open-access" type="application/epub+zip"/>
+ <link href="https://files.unglue.it/cache/82/53/82532928e810f0efc5f2753cb1248278.jpg" rel="http://opds-spec.org/image/thumbnail" type="image/jpeg"/>
+ <link href="https://files.unglue.it/cache/60/54/6054f6ad467e45646e2ffa5be0f9045b.jpg" rel="http://opds-spec.org/image" type="image/jpeg"/>
+ <dcterms:issued>
+  2009-Octo
+ </dcterms:issued>
+ <author>
+  <name>
+   Lauren Pressley
+  </name>
+ </author>
+ <dcterms:language>
+  en
+ </dcterms:language>
+ <content type="html">
+  "Provides information about librarianship as a career, including types of libraries, types of jobs within libraries, professional issues, and educational requirements"--Provided by publisher.
+ </content>
+ <dcterms:identifier xsi:type="dcterms:URI">
+  urn:ISBN:9780980200485
+ </dcterms:identifier>
+ <dcterms:identifier xsi:type="dcterms:URI">
+  urn:ISBN:9781936117291
+ </dcterms:identifier>
+ <category term="College students">
+ </category>
+ <link href="https://unglue.it/api/opds/kw.College%20students/?order_by=popular&amp;page=0" rel="related" title="College students" type="application/atom+xml; profile=opds-catalog ;kind=acquisition; charset=utf-8"/>
+ <category term="Education">
+ </category>
+ <link href="https://unglue.it/api/opds/kw.Education/?order_by=popular&amp;page=0" rel="related" title="Education" type="application/atom+xml; profile=opds-catalog ;kind=acquisition; charset=utf-8"/>
+ <category term="Information science">
+ </category>
+ <link href="https://unglue.it/api/opds/kw.Information%20science/?order_by=popular&amp;page=0" rel="related" title="Information science" type="application/atom+xml; profile=opds-catalog ;kind=acquisition; charset=utf-8"/>
+ <category term="library">
+ </category>
+ <link href="https://unglue.it/api/opds/kw.library/?order_by=popular&amp;page=0" rel="related" title="library" type="application/atom+xml; profile=opds-catalog ;kind=acquisition; charset=utf-8"/>
+ <category term="Nonfiction">
+ </category>
+ <link href="https://unglue.it/api/opds/kw.Nonfiction/?order_by=popular&amp;page=0" rel="related" title="Nonfiction" type="application/atom+xml; profile=opds-catalog ;kind=acquisition; charset=utf-8"/>
+ <category term="Reference">
+ </category>
+ <link href="https://unglue.it/api/opds/kw.Reference/?order_by=popular&amp;page=0" rel="related" title="Reference" type="application/atom+xml; profile=opds-catalog ;kind=acquisition; charset=utf-8"/>
+ <category term="Vocational guidance">
+ </category>
+ <link href="https://unglue.it/api/opds/kw.Vocational%20guidance/?order_by=popular&amp;page=0" rel="related" title="Vocational guidance" type="application/atom+xml; profile=opds-catalog ;kind=acquisition; charset=utf-8"/>
+ <schema:Rating schema:ratingValue="5">
+ </schema:Rating>
+</entry><entry>
+ <title>
+  Oral Literature in Africa
+ </title>
+ <id>
+  https://unglue.it/api/id/work/81835/
+ </id>
+ <updated>
+  2012-09-11T14:08:09
+ </updated>
+ <link dcterms:rights="CC BY" href="https://unglue.it/download_ebook/905/?feed=opds" rel="http://opds-spec.org/acquisition/open-access" type="application/epub+zip"/>
+ <link href="https://files.unglue.it/cache/7c/60/7c6002af17d0477bbf435a47eabf6e42.jpg" rel="http://opds-spec.org/image/thumbnail" type="image/jpeg"/>
+ <link href="https://files.unglue.it/cache/20/41/20413852c99ed66eda27a33c4a08c4c4.jpg" rel="http://opds-spec.org/image" type="image/jpeg"/>
+ <dcterms:issued>
+  1970-2012
+ </dcterms:issued>
+ <author>
+  <name>
+   Ruth Finnegan
+  </name>
+ </author>
+ <dcterms:publisher>
+  Open Book Publishers
+ </dcterms:publisher>
+ <dcterms:language>
+  en
+ </dcterms:language>
+ <content type="html">
+  &lt;p&gt;Ruth Finnegan&amp;rsquo;s Oral Literature in Africa was first published in 1970, and since then has been widely praised as one of the most important books in its field. Based on years of fieldwork, the study traces the history of storytelling across the continent of Africa. This revised edition makes Finnegan&amp;rsquo;s ground-breaking research available to the next generation of scholars. It includes a new introduction, additional images and an updated bibliography, as well as its original chapters on poetry, prose, &amp;quot;drum language&amp;rdquo; and drama, and an overview of the social, linguistic and historical background of oral literature in Africa. This volume is complemented by original recordings of stories and songs from the Limba country (Sierra Leone), collected by Finnegan during her fieldwork in the late 1960s, which are freely accessible here. The book is available as a free pdf and ebook download thanks to the generous support of interested readers and organisations, who made donations using the crowd-funding website unglue.it. Oral Literature in Africa is part of the World Oral Literature Series published in conjunction with the World Oral Literature Project.&lt;/p&gt;
+ </content>
+ <dcterms:identifier xsi:type="dcterms:URI">
+  urn:ISBN:9780195724134
+ </dcterms:identifier>
+ <dcterms:identifier xsi:type="dcterms:URI">
+  urn:ISBN:9780198151319
+ </dcterms:identifier>
+ <dcterms:identifier xsi:type="dcterms:URI">
+  urn:ISBN:9780198151314
+ </dcterms:identifier>
+ <dcterms:identifier xsi:type="dcterms:URI">
+  urn:ISBN:9780198151315
+ </dcterms:identifier>
+ <dcterms:identifier xsi:type="dcterms:URI">
+  urn:ISBN:9781906924737
+ </dcterms:identifier>
+ <dcterms:identifier xsi:type="dcterms:URI">
+  urn:ISBN:9781906924713
+ </dcterms:identifier>
+ <dcterms:identifier xsi:type="dcterms:URI">
+  urn:ISBN:9781906924720
+ </dcterms:identifier>
+ <dcterms:identifier xsi:type="dcterms:URI">
+  urn:ISBN:9781906924744
+ </dcterms:identifier>
+ <dcterms:identifier xsi:type="dcterms:URI">
+  urn:ISBN:9781906924706
+ </dcterms:identifier>
+ <category term=" 20th century">
+ </category>
+ <link href="https://unglue.it/api/opds/kw.%2020th%20century/?order_by=popular&amp;page=0" rel="related" title=" 20th century" type="application/atom+xml; profile=opds-catalog ;kind=acquisition; charset=utf-8"/>
+ <category term=" anthropology">
+ </category>
+ <link href="https://unglue.it/api/opds/kw.%20anthropology/?order_by=popular&amp;page=0" rel="related" title=" anthropology" type="application/atom+xml; profile=opds-catalog ;kind=acquisition; charset=utf-8"/>
+ <category term=" Literary Criticism">
+ </category>
+ <link href="https://unglue.it/api/opds/kw.%20Literary%20Criticism/?order_by=popular&amp;page=0" rel="related" title=" Literary Criticism" type="application/atom+xml; profile=opds-catalog ;kind=acquisition; charset=utf-8"/>
+ <category term="Africa">
+ </category>
+ <link href="https://unglue.it/api/opds/kw.Africa/?order_by=popular&amp;page=0" rel="related" title="Africa" type="application/atom+xml; profile=opds-catalog ;kind=acquisition; charset=utf-8"/>
+ <category term="African culture">
+ </category>
+ <link href="https://unglue.it/api/opds/kw.African%20culture/?order_by=popular&amp;page=0" rel="related" title="African culture" type="application/atom+xml; profile=opds-catalog ;kind=acquisition; charset=utf-8"/>
+ <category term="African Folk literature">
+ </category>
+ <category term="Children's literature, English">
+ </category>
+ <link href="https://unglue.it/api/opds/kw.Children%27s%20literature%2C%20English/?order_by=popular&amp;page=0" rel="related" title="Children's literature, English" type="application/atom+xml; profile=opds-catalog ;kind=acquisition; charset=utf-8"/>
+ <category term="Drama">
+ </category>
+ <link href="https://unglue.it/api/opds/kw.Drama/?order_by=popular&amp;page=0" rel="related" title="Drama" type="application/atom+xml; profile=opds-catalog ;kind=acquisition; charset=utf-8"/>
+ <category term="Drama / African">
+ </category>
+ <category term="Folk literature">
+ </category>
+ <link href="https://unglue.it/api/opds/kw.Folk%20literature/?order_by=popular&amp;page=0" rel="related" title="Folk literature" type="application/atom+xml; profile=opds-catalog ;kind=acquisition; charset=utf-8"/>
+ <category term="Folk literature, African">
+ </category>
+ <category term="History">
+ </category>
+ <link href="https://unglue.it/api/opds/kw.History/?order_by=popular&amp;page=0" rel="related" title="History" type="application/atom+xml; profile=opds-catalog ;kind=acquisition; charset=utf-8"/>
+ <category term="History and criticism">
+ </category>
+ <link href="https://unglue.it/api/opds/kw.History%20and%20criticism/?order_by=popular&amp;page=0" rel="related" title="History and criticism" type="application/atom+xml; profile=opds-catalog ;kind=acquisition; charset=utf-8"/>
+ <category term="Limba">
+ </category>
+ <category term="Limba people (Sierra Leone)">
+ </category>
+ <category term="Literary Criticism">
+ </category>
+ <link href="https://unglue.it/api/opds/kw.Literary%20Criticism/?order_by=popular&amp;page=0" rel="related" title="Literary Criticism" type="application/atom+xml; profile=opds-catalog ;kind=acquisition; charset=utf-8"/>
+ <category term="Literary Criticism / African">
+ </category>
+ <link href="https://unglue.it/api/opds/kw.Literary%20Criticism%20/%20African/?order_by=popular&amp;page=0" rel="related" title="Literary Criticism / African" type="application/atom+xml; profile=opds-catalog ;kind=acquisition; charset=utf-8"/>
+ <category term="Literature &amp; literary studies">
+ </category>
+ <link href="https://unglue.it/api/opds/kw.Literature%20%26%20literary%20studies/?order_by=popular&amp;page=0" rel="related" title="Literature &amp; literary studies" type="application/atom+xml; profile=opds-catalog ;kind=acquisition; charset=utf-8"/>
+ <category term="Nonfiction">
+ </category>
+ <link href="https://unglue.it/api/opds/kw.Nonfiction/?order_by=popular&amp;page=0" rel="related" title="Nonfiction" type="application/atom+xml; profile=opds-catalog ;kind=acquisition; charset=utf-8"/>
+ <category term="Oral literature">
+ </category>
+ <link href="https://unglue.it/api/opds/kw.Oral%20literature/?order_by=popular&amp;page=0" rel="related" title="Oral literature" type="application/atom+xml; profile=opds-catalog ;kind=acquisition; charset=utf-8"/>
+ <category term="Oral tradition">
+ </category>
+ <link href="https://unglue.it/api/opds/kw.Oral%20tradition/?order_by=popular&amp;page=0" rel="related" title="Oral tradition" type="application/atom+xml; profile=opds-catalog ;kind=acquisition; charset=utf-8"/>
+ <category term="Orality">
+ </category>
+ <link href="https://unglue.it/api/opds/kw.Orality/?order_by=popular&amp;page=0" rel="related" title="Orality" type="application/atom+xml; profile=opds-catalog ;kind=acquisition; charset=utf-8"/>
+ <category term="Prose">
+ </category>
+ <link href="https://unglue.it/api/opds/kw.Prose/?order_by=popular&amp;page=0" rel="related" title="Prose" type="application/atom+xml; profile=opds-catalog ;kind=acquisition; charset=utf-8"/>
+ <category term="Proverb">
+ </category>
+ <link href="https://unglue.it/api/opds/kw.Proverb/?order_by=popular&amp;page=0" rel="related" title="Proverb" type="application/atom+xml; profile=opds-catalog ;kind=acquisition; charset=utf-8"/>
+ <category term="Sierra Leone">
+ </category>
+ <link href="https://unglue.it/api/opds/kw.Sierra%20Leone/?order_by=popular&amp;page=0" rel="related" title="Sierra Leone" type="application/atom+xml; profile=opds-catalog ;kind=acquisition; charset=utf-8"/>
+ <category term="Social Science">
+ </category>
+ <link href="https://unglue.it/api/opds/kw.Social%20Science/?order_by=popular&amp;page=0" rel="related" title="Social Science" type="application/atom+xml; profile=opds-catalog ;kind=acquisition; charset=utf-8"/>
+ <category term="Social Science / Anthropology">
+ </category>
+ <link href="https://unglue.it/api/opds/kw.Social%20Science%20/%20Anthropology/?order_by=popular&amp;page=0" rel="related" title="Social Science / Anthropology" type="application/atom+xml; profile=opds-catalog ;kind=acquisition; charset=utf-8"/>
+ <category term="Social Science / Anthropology / Cultural">
+ </category>
+ <link href="https://unglue.it/api/opds/kw.Social%20Science%20/%20Anthropology%20/%20Cultural/?order_by=popular&amp;page=0" rel="related" title="Social Science / Anthropology / Cultural" type="application/atom+xml; profile=opds-catalog ;kind=acquisition; charset=utf-8"/>
+ <category term="Storytelling">
+ </category>
+ <link href="https://unglue.it/api/opds/kw.Storytelling/?order_by=popular&amp;page=0" rel="related" title="Storytelling" type="application/atom+xml; profile=opds-catalog ;kind=acquisition; charset=utf-8"/>
+ <category term="thema EDItEUR::D Biography, Literature and Literary studies">
+ </category>
+ <link href="https://unglue.it/api/opds/kw.thema%20EDItEUR%3A%3AD%20Biography%2C%20Literature%20and%20Literary%20studies/?order_by=popular&amp;page=0" rel="related" title="thema EDItEUR::D Biography, Literature and Literary studies" type="application/atom+xml; profile=opds-catalog ;kind=acquisition; charset=utf-8"/>
+ <category term="Unglue.it">
+ </category>
+ <category term="Unglued">
+ </category>
+ <category term="West Africa">
+ </category>
+ <link href="https://unglue.it/api/opds/kw.West%20Africa/?order_by=popular&amp;page=0" rel="related" title="West Africa" type="application/atom+xml; profile=opds-catalog ;kind=acquisition; charset=utf-8"/>
+ <category term="Yoruba people">
+ </category>
+ <link href="https://unglue.it/api/opds/kw.Yoruba%20people/?order_by=popular&amp;page=0" rel="related" title="Yoruba people" type="application/atom+xml; profile=opds-catalog ;kind=acquisition; charset=utf-8"/>
+ <category label="Adult/Advanced Reader" scheme="http://schema.org/typicalAgeRange" term="18-">
+ </category>
+ <schema:Rating schema:ratingValue="5">
+ </schema:Rating>
+</entry><entry>
+ <title>
+  Warbreaker
+ </title>
+ <id>
+  https://unglue.it/api/id/work/7775/
+ </id>
+ <updated>
+  2019-06-18T10:55:52
+ </updated>
+ <link dcterms:rights="CC BY-NC-ND" href="https://unglue.it/download_ebook/238018/?feed=opds" rel="http://opds-spec.org/acquisition/open-access" type="application/epub+zip"/>
+ <link href="https://encrypted.google.com/books?id=Prj1iTmPJn4C&amp;printsec=frontcover&amp;img=1&amp;zoom=5" rel="http://opds-spec.org/image/thumbnail" type="image/jpeg"/>
+ <link href="https://encrypted.google.com/books?id=Prj1iTmPJn4C&amp;printsec=frontcover&amp;img=1&amp;zoom=1" rel="http://opds-spec.org/image" type="image/jpeg"/>
+ <dcterms:issued>
+  2009-2011
+ </dcterms:issued>
+ <author>
+  <name>
+   Brandon Sanderson
+  </name>
+ </author>
+ <dcterms:language>
+  en
+ </dcterms:language>
+ <content type="html">
+  After bursting onto the fantasy scene with his acclaimed debut novel, Elantris, and following up with his blockbuster Mistborn trilogy, Brandon Sanderson proves again that he is today’s leading master of what Tolkien called “secondary creation,” the invention of whole worlds, complete with magics and myths all their own.
+
+Warbreaker is the story of two sisters, who happen to be princesses, the God King one of them has to marry, the lesser god who doesn’t like his job, and the immortal who’s still trying to undo the mistakes he made hundreds of years ago.
+
+Their world is one in which those who die in glory return as gods to live confined to a pantheon in Hallandren’s capital city and where a power known as BioChromatic magic is based on an essence known as breath that can only be collected one unit at a time from individual people.
+
+By using breath and drawing upon the color in everyday objects, all manner of miracles and mischief can be accomplished. It will take considerable quantities of each to resolve all the challenges facing Vivenna and Siri, princesses of Idris; Susebron the God King; Lightsong, reluctant god of  bravery, and mysterious Vasher, the Warbreaker.
+ </content>
+ <dcterms:identifier xsi:type="dcterms:URI">
+  urn:ISBN:9780765360038
+ </dcterms:identifier>
+ <dcterms:identifier xsi:type="dcterms:URI">
+  urn:ISBN:9780765320308
+ </dcterms:identifier>
+ <dcterms:identifier xsi:type="dcterms:URI">
+  urn:ISBN:9780575097476
+ </dcterms:identifier>
+ <dcterms:identifier xsi:type="dcterms:URI">
+  urn:ISBN:9780575097469
+ </dcterms:identifier>
+ <dcterms:identifier xsi:type="dcterms:URI">
+  urn:ISBN:9788466658874
+ </dcterms:identifier>
+ <dcterms:identifier xsi:type="dcterms:URI">
+  urn:ISBN:9781429967945
+ </dcterms:identifier>
+ <dcterms:identifier xsi:type="dcterms:URI">
+  urn:ISBN:9781938570216
+ </dcterms:identifier>
+ <dcterms:identifier xsi:type="dcterms:URI">
+  urn:ISBN:9780765360045
+ </dcterms:identifier>
+ <category term="Fiction">
+ </category>
+ <link href="https://unglue.it/api/opds/kw.Fiction/?order_by=popular&amp;page=0" rel="related" title="Fiction" type="application/atom+xml; profile=opds-catalog ;kind=acquisition; charset=utf-8"/>
+ <category term="Fiction / Fantasy">
+ </category>
+ <link href="https://unglue.it/api/opds/kw.Fiction%20/%20Fantasy/?order_by=popular&amp;page=0" rel="related" title="Fiction / Fantasy" type="application/atom+xml; profile=opds-catalog ;kind=acquisition; charset=utf-8"/>
+ <category term="Fiction / Fantasy / Epic">
+ </category>
+ <link href="https://unglue.it/api/opds/kw.Fiction%20/%20Fantasy%20/%20Epic/?order_by=popular&amp;page=0" rel="related" title="Fiction / Fantasy / Epic" type="application/atom+xml; profile=opds-catalog ;kind=acquisition; charset=utf-8"/>
+ <category term="Fiction, fantasy, general">
+ </category>
+ <link href="https://unglue.it/api/opds/kw.Fiction%2C%20fantasy%2C%20general/?order_by=popular&amp;page=0" rel="related" title="Fiction, fantasy, general" type="application/atom+xml; profile=opds-catalog ;kind=acquisition; charset=utf-8"/>
+ <category term="Gods">
+ </category>
+ <link href="https://unglue.it/api/opds/kw.Gods/?order_by=popular&amp;page=0" rel="related" title="Gods" type="application/atom+xml; profile=opds-catalog ;kind=acquisition; charset=utf-8"/>
+ <category term="Imaginary places">
+ </category>
+ <link href="https://unglue.it/api/opds/kw.Imaginary%20places/?order_by=popular&amp;page=0" rel="related" title="Imaginary places" type="application/atom+xml; profile=opds-catalog ;kind=acquisition; charset=utf-8"/>
+ <category term="Imaginary places, fiction">
+ </category>
+ <category term="Magic">
+ </category>
+ <link href="https://unglue.it/api/opds/kw.Magic/?order_by=popular&amp;page=0" rel="related" title="Magic" type="application/atom+xml; profile=opds-catalog ;kind=acquisition; charset=utf-8"/>
+ <category term="Princesses">
+ </category>
+ <link href="https://unglue.it/api/opds/kw.Princesses/?order_by=popular&amp;page=0" rel="related" title="Princesses" type="application/atom+xml; profile=opds-catalog ;kind=acquisition; charset=utf-8"/>
+ <category term="Sisters">
+ </category>
+ <link href="https://unglue.it/api/opds/kw.Sisters/?order_by=popular&amp;page=0" rel="related" title="Sisters" type="application/atom+xml; profile=opds-catalog ;kind=acquisition; charset=utf-8"/>
+ <category term="Sisters, fiction">
+ </category>
+ <link href="https://unglue.it/api/opds/kw.Sisters%2C%20fiction/?order_by=popular&amp;page=0" rel="related" title="Sisters, fiction" type="application/atom+xml; profile=opds-catalog ;kind=acquisition; charset=utf-8"/>
+ <schema:Rating schema:ratingValue="5">
+ </schema:Rating>
+</entry><entry>
+ <title>
+  Zero Sum Game
+ </title>
+ <id>
+  https://unglue.it/api/id/work/417357/
+ </id>
+ <updated>
+  2014-08-06T13:33:41
+ </updated>
+ <link dcterms:rights="CC BY-NC-SA" href="https://unglue.it/download_ebook/2241/?feed=opds" rel="http://opds-spec.org/acquisition/open-access" type="application/epub+zip"/>
+ <link href="https://encrypted.google.com/books?id=rW7ErQEACAAJ&amp;printsec=frontcover&amp;img=1&amp;zoom=5" rel="http://opds-spec.org/image/thumbnail" type="image/jpeg"/>
+ <link href="https://encrypted.google.com/books?id=rW7ErQEACAAJ&amp;printsec=frontcover&amp;img=1&amp;zoom=1" rel="http://opds-spec.org/image" type="image/jpeg"/>
+ <dcterms:issued>
+  2014
+ </dcterms:issued>
+ <author>
+  <name>
+   S. L. Huang
+  </name>
+ </author>
+ <dcterms:language>
+  en
+ </dcterms:language>
+ <content type="html">
+  &lt;p&gt;&lt;em&gt;&lt;strong&gt;Deadly. Mercenary. Superhuman. Not your ordinary math geek.&lt;/strong&gt;&lt;/em&gt;&lt;/p&gt;
+
+&lt;p&gt;Cas Russell is good at math. Scary good.&lt;/p&gt;
+
+&lt;p&gt;The vector calculus blazing through her head lets her smash through armed men twice her size and dodge every bullet in a gunfight. She can take any job for the right price and shoot anyone who gets in her way.&lt;/p&gt;
+
+&lt;p&gt;As far as she knows, she&amp;rsquo;s the only person around with a superpower . . . but then Cas discovers someone with a power even more dangerous than her own. Someone who can reach directly into people&amp;rsquo;s minds and twist their brains into Moebius strips. Someone intent on becoming the world&amp;rsquo;s puppet master.&lt;/p&gt;
+
+&lt;p&gt;Someone who&amp;rsquo;s already warped Cas&amp;rsquo;s thoughts once before, with her none the wiser.&lt;/p&gt;
+
+&lt;p&gt;Cas should run. Going up against a psychic with a god complex isn&amp;rsquo;t exactly a rational move, and saving the world from a power-hungry telepath isn&amp;rsquo;t her responsibility. But she isn&amp;rsquo;t about to let anyone get away with violating her brain &amp;mdash; and besides, she&amp;rsquo;s got a small arsenal and some deadly mathematics on her side. There&amp;rsquo;s only one problem . . .&lt;/p&gt;
+
+&lt;p&gt;She doesn&amp;rsquo;t know which of her thoughts are her own anymore.&lt;/p&gt;
+
+&lt;p&gt;&lt;em&gt;&lt;strong&gt;ZERO SUM GAME is a speculative fiction thriller by an MIT math graduate.&lt;/strong&gt;&lt;/em&gt;&lt;/p&gt;
+ </content>
+ <dcterms:identifier xsi:type="dcterms:URI">
+  urn:ISBN:9780996070003
+ </dcterms:identifier>
+ <dcterms:identifier xsi:type="dcterms:URI">
+  urn:ISBN:9780996070010
+ </dcterms:identifier>
+ <dcterms:identifier xsi:type="dcterms:URI">
+  urn:ISBN:9780996070027
+ </dcterms:identifier>
+ <dcterms:identifier xsi:type="dcterms:URI">
+  urn:ISBN:9781250180261
+ </dcterms:identifier>
+ <dcterms:identifier xsi:type="dcterms:URI">
+  urn:ISBN:9780996070034
+ </dcterms:identifier>
+ <dcterms:identifier xsi:type="dcterms:URI">
+  urn:ISBN:9783453320000
+ </dcterms:identifier>
+ <dcterms:identifier xsi:type="dcterms:URI">
+  urn:ISBN:9781250749895
+ </dcterms:identifier>
+ <category term="Fiction">
+ </category>
+ <link href="https://unglue.it/api/opds/kw.Fiction/?order_by=popular&amp;page=0" rel="related" title="Fiction" type="application/atom+xml; profile=opds-catalog ;kind=acquisition; charset=utf-8"/>
+ <category term="Fiction, fantasy, general">
+ </category>
+ <link href="https://unglue.it/api/opds/kw.Fiction%2C%20fantasy%2C%20general/?order_by=popular&amp;page=0" rel="related" title="Fiction, fantasy, general" type="application/atom+xml; profile=opds-catalog ;kind=acquisition; charset=utf-8"/>
+ <category term="Fiction, science fiction, action &amp; adventure">
+ </category>
+ <link href="https://unglue.it/api/opds/kw.Fiction%2C%20science%20fiction%2C%20action%20%26%20adventure/?order_by=popular&amp;page=0" rel="related" title="Fiction, science fiction, action &amp; adventure" type="application/atom+xml; profile=opds-catalog ;kind=acquisition; charset=utf-8"/>
+ <category term="Fiction, science fiction, general">
+ </category>
+ <link href="https://unglue.it/api/opds/kw.Fiction%2C%20science%20fiction%2C%20general/?order_by=popular&amp;page=0" rel="related" title="Fiction, science fiction, general" type="application/atom+xml; profile=opds-catalog ;kind=acquisition; charset=utf-8"/>
+ <category term="Fiction, thrillers">
+ </category>
+ <category term="Science Fiction">
+ </category>
+ <link href="https://unglue.it/api/opds/kw.Science%20Fiction/?order_by=popular&amp;page=0" rel="related" title="Science Fiction" type="application/atom+xml; profile=opds-catalog ;kind=acquisition; charset=utf-8"/>
+ <schema:Rating schema:ratingValue="5">
+ </schema:Rating>
+</entry><entry>
+ <title>
+  23rd Century Romance
+ </title>
+ <id>
+  https://unglue.it/api/id/work/130413/
+ </id>
+ <updated>
+  2014-03-11T16:57:01
+ </updated>
+ <link dcterms:rights="CC BY-NC-ND" href="https://unglue.it/download_ebook/1134/?feed=opds" rel="http://opds-spec.org/acquisition/open-access" type="application/epub+zip"/>
+ <link href="https://files.unglue.it/cache/39/1d/391de950ce15e5f3675283ab2972cf39.jpg" rel="http://opds-spec.org/image/thumbnail" type="image/jpeg"/>
+ <link href="https://files.unglue.it/cache/9f/27/9f27b9c3c7a9a104df1bb0d4c6c1982b.jpg" rel="http://opds-spec.org/image" type="image/jpeg"/>
+ <dcterms:issued>
+  2013
+ </dcterms:issued>
+ <author>
+  <name>
+   Jake Hartnell
+  </name>
+ </author>
+ <dcterms:language>
+  en
+ </dcterms:language>
+ <content type="html">
+  &lt;p dir="ltr" style="line-height:1.15;margin-top:0pt;margin-bottom:0pt;"&gt;
+	&lt;span id="docs-internal-guid-f8f8b1f3-b2e2-0ede-7f6c-42fe32f7c535"&gt;&lt;span style="font-size: 28px; font-family: Lato; color: rgb(0, 0, 0); background-color: transparent; vertical-align: baseline; white-space: pre-wrap;"&gt;A &amp;quot;Sci-fi Romantic Comedy&amp;quot;&lt;/span&gt;&lt;/span&gt;&lt;/p&gt;
+&lt;p dir="ltr" style="line-height:1.15;margin-top:0pt;margin-bottom:0pt;"&gt;
+	&amp;nbsp;&lt;/p&gt;
+&lt;p dir="ltr" style="line-height:1.15;margin-top:0pt;margin-bottom:0pt;"&gt;
+	&lt;span id="docs-internal-guid-f8f8b1f3-b2e2-0ede-7f6c-42fe32f7c535"&gt;&lt;span style="font-size: 15px; font-family: Lato; color: rgb(0, 0, 0); background-color: transparent; font-weight: bold; vertical-align: baseline; white-space: pre-wrap;"&gt;People are often confused &lt;/span&gt;&lt;span style="font-size: 15px; font-family: Lato; color: rgb(0, 0, 0); background-color: transparent; vertical-align: baseline; white-space: pre-wrap;"&gt;when I tell them I&amp;rsquo;ve written a Sci-Fi Romantic comedy.&lt;/span&gt;&lt;/span&gt;&lt;/p&gt;
+&lt;p dir="ltr" style="line-height:1.15;margin-top:0pt;margin-bottom:0pt;"&gt;
+	&amp;nbsp;&lt;/p&gt;
+&lt;p dir="ltr" style="line-height:1.15;margin-top:0pt;margin-bottom:0pt;"&gt;
+	&lt;span style="background-color: transparent; color: rgb(0, 0, 0); font-family: Lato; font-size: 15px; line-height: 1.15; white-space: pre-wrap;"&gt;&amp;lsquo;What is it about?&amp;rsquo; They ask excitedly, usually greatly intrigued. &lt;/span&gt;&lt;/p&gt;
+&lt;p dir="ltr" style="line-height:1.15;margin-top:0pt;margin-bottom:0pt;"&gt;
+	&amp;nbsp;&lt;/p&gt;
+&lt;p dir="ltr" style="line-height:1.15;margin-top:0pt;margin-bottom:0pt;"&gt;
+	&lt;span style="background-color: transparent; color: rgb(0, 0, 0); font-family: Lato; font-size: 15px; white-space: pre-wrap; line-height: 1.15;"&gt;&amp;ldquo;The future of sex and relationships.&amp;rdquo; &lt;/span&gt;&lt;/p&gt;
+&lt;p dir="ltr" style="line-height:1.15;margin-top:0pt;margin-bottom:0pt;"&gt;
+	&amp;nbsp;&lt;/p&gt;
+&lt;p dir="ltr" style="line-height:1.15;margin-top:0pt;margin-bottom:0pt;"&gt;
+	&lt;span id="docs-internal-guid-f8f8b1f3-b2e2-0ede-7f6c-42fe32f7c535"&gt;&lt;span style="font-size: 15px; font-family: Lato; color: rgb(0, 0, 0); background-color: transparent; vertical-align: baseline; white-space: pre-wrap;"&gt;Think &lt;/span&gt;&lt;span style="font-size: 15px; font-family: Lato; color: rgb(0, 0, 0); background-color: transparent; font-style: italic; vertical-align: baseline; white-space: pre-wrap;"&gt;You&amp;#39;ve Got Mail &lt;/span&gt;&lt;span style="font-size: 15px; font-family: Lato; color: rgb(0, 0, 0); background-color: transparent; vertical-align: baseline; white-space: pre-wrap;"&gt;meets &lt;/span&gt;&lt;span style="font-size: 15px; font-family: Lato; color: rgb(0, 0, 0); background-color: transparent; font-style: italic; vertical-align: baseline; white-space: pre-wrap;"&gt;Brave New World&lt;/span&gt;&lt;span style="font-size: 15px; font-family: Lato; color: rgb(0, 0, 0); background-color: transparent; vertical-align: baseline; white-space: pre-wrap;"&gt;,&lt;/span&gt;&lt;span style="font-size: 15px; font-family: Lato; color: rgb(0, 0, 0); background-color: transparent; font-style: italic; vertical-align: baseline; white-space: pre-wrap;"&gt; &lt;/span&gt;&lt;span style="font-size: 15px; font-family: Lato; color: rgb(0, 0, 0); background-color: transparent; vertical-align: baseline; white-space: pre-wrap;"&gt;but inspired by the french philosopher &lt;/span&gt;&lt;a href="http://en.wikipedia.org/wiki/Jean_Baudrillard" style="text-decoration:none;"&gt;&lt;span style="font-size: 15px; font-family: Lato; color: rgb(17, 85, 204); background-color: transparent; text-decoration: underline; vertical-align: baseline; white-space: pre-wrap;"&gt;Jean Baudrillard&lt;/span&gt;&lt;/a&gt;&lt;span style="font-size: 15px; font-family: Lato; color: rgb(0, 0, 0); background-color: transparent; vertical-align: baseline; white-space: pre-wrap;"&gt;. &lt;/span&gt;&lt;/span&gt;&lt;span style="background-color: transparent; color: rgb(0, 0, 0); font-family: Lato; font-size: 15px; line-height: 1.15; text-align: center; white-space: pre-wrap;"&gt;The genius behind this wonderful quote:&lt;/span&gt;&lt;/p&gt;
+&lt;p dir="ltr" style="line-height:1.15;margin-top:0pt;margin-bottom:0pt;"&gt;
+	&lt;br /&gt;
+	&lt;span id="docs-internal-guid-f8f8b1f3-b2e2-0ede-7f6c-42fe32f7c535"&gt;&lt;img height="590px;" src="https://lh4.googleusercontent.com/jd5QLAqU8a574bvQAPfCqejKJXsQC0EK6jhwWJlGjH1QRBB-8Om9liGucp5yNwVizXNt1ZdceYOVh3vj1dElJFRIdYzW2h0Gn5siE20P9ok_2pGwjEeDdWByvw_2cQ" style="border: none;" width="466px;" /&gt;&lt;/span&gt;&lt;/p&gt;
+&lt;p dir="ltr" style="line-height:1.15;margin-top:0pt;margin-bottom:0pt;"&gt;
+	&lt;span id="docs-internal-guid-f8f8b1f3-b2e2-0ede-7f6c-42fe32f7c535"&gt;&lt;span style="font-size: 15px; font-family: Lato; color: rgb(0, 0, 0); background-color: transparent; vertical-align: baseline; white-space: pre-wrap;"&gt;Some of you who have not read &lt;/span&gt;&lt;span style="font-size: 15px; font-family: Lato; color: rgb(0, 0, 0); background-color: transparent; font-style: italic; vertical-align: baseline; white-space: pre-wrap;"&gt;Simulacra and Simulation&lt;/span&gt;&lt;span style="font-size: 15px; font-family: Lato; color: rgb(0, 0, 0); background-color: transparent; vertical-align: baseline; white-space: pre-wrap;"&gt; may be wondering what that means and why it had to be accompanied by a naked ASCII woman composed of the word &amp;ldquo;sex.&amp;rdquo;&lt;/span&gt;&lt;/span&gt;&lt;/p&gt;
+&lt;p dir="ltr" style="line-height:1.15;margin-top:0pt;margin-bottom:0pt;"&gt;
+	&amp;nbsp;&lt;/p&gt;
+&lt;p dir="ltr" style="line-height:1.15;margin-top:0pt;margin-bottom:0pt;"&gt;
+	&lt;span style="background-color: transparent; color: rgb(0, 0, 0); font-family: Lato; font-size: 15px; white-space: pre-wrap; line-height: 1.15;"&gt;It means in the screen-dominated modern life, we are often confused between the things themselves and the representations of things. &lt;/span&gt;&lt;/p&gt;
+&lt;p dir="ltr" style="line-height:1.15;margin-top:0pt;margin-bottom:0pt;"&gt;
+	&amp;nbsp;&lt;/p&gt;
+&lt;p dir="ltr" style="line-height:1.15;margin-top:0pt;margin-bottom:0pt;"&gt;
+	&lt;span style="background-color: transparent; color: rgb(0, 0, 0); font-family: Lato; font-size: 15px; font-weight: bold; white-space: pre-wrap; line-height: 1.15;"&gt;What is love? &lt;/span&gt;&lt;/p&gt;
+&lt;p dir="ltr" style="line-height:1.15;margin-top:0pt;margin-bottom:0pt;"&gt;
+	&amp;nbsp;&lt;/p&gt;
+&lt;p dir="ltr" style="line-height:1.15;margin-top:0pt;margin-bottom:0pt;"&gt;
+	&lt;span id="docs-internal-guid-f8f8b1f3-b2e2-0ede-7f6c-42fe32f7c535"&gt;&lt;span style="font-size: 15px; font-family: Lato; color: rgb(0, 0, 0); background-color: transparent; vertical-align: baseline; white-space: pre-wrap;"&gt;Images of Hollywood romance come to mind, countless romantic comedies. &lt;/span&gt;&lt;/span&gt;&lt;/p&gt;
+&lt;p dir="ltr" style="line-height:1.15;margin-top:0pt;margin-bottom:0pt;"&gt;
+	&amp;nbsp;&lt;/p&gt;
+&lt;p dir="ltr" style="line-height:1.15;margin-top:0pt;margin-bottom:0pt;"&gt;
+	&lt;span style="background-color: transparent; color: rgb(0, 0, 0); font-family: Lato; font-size: 15px; font-weight: bold; white-space: pre-wrap; line-height: 1.15;"&gt;What is sex? &lt;/span&gt;&lt;/p&gt;
+&lt;p dir="ltr" style="line-height:1.15;margin-top:0pt;margin-bottom:0pt;"&gt;
+	&amp;nbsp;&lt;/p&gt;
+&lt;p dir="ltr" style="line-height:1.15;margin-top:0pt;margin-bottom:0pt;"&gt;
+	&lt;span id="docs-internal-guid-f8f8b1f3-b2e2-0ede-7f6c-42fe32f7c535"&gt;&lt;span style="font-size: 15px; font-family: Lato; color: rgb(0, 0, 0); background-color: transparent; vertical-align: baseline; white-space: pre-wrap;"&gt;Beautiful people fucking on screens! Women of impossible photoshopped proportions screaming in orgasmic ecstasy! (This is what virgin teenagers know from watching porn.)&lt;/span&gt;&lt;/span&gt;&lt;/p&gt;
+&lt;p dir="ltr" style="line-height:1.15;margin-top:0pt;margin-bottom:0pt;"&gt;
+	&amp;nbsp;&lt;/p&gt;
+&lt;p dir="ltr" style="line-height:1.15;margin-top:0pt;margin-bottom:0pt;"&gt;
+	&lt;span style="background-color: transparent; color: rgb(0, 0, 0); font-family: Lato; font-size: 15px; font-weight: bold; white-space: pre-wrap; line-height: 1.15;"&gt;What is war?&lt;/span&gt;&lt;/p&gt;
+&lt;p dir="ltr" style="line-height:1.15;margin-top:0pt;margin-bottom:0pt;"&gt;
+	&amp;nbsp;&lt;/p&gt;
+&lt;p dir="ltr" style="line-height:1.15;margin-top:0pt;margin-bottom:0pt;"&gt;
+	&lt;span id="docs-internal-guid-f8f8b1f3-b2e2-0ede-7f6c-42fe32f7c535"&gt;&lt;span style="font-size: 15px; font-family: Lato; color: rgb(0, 0, 0); background-color: transparent; vertical-align: baseline; white-space: pre-wrap;"&gt;A video game (or movie).&lt;/span&gt;&lt;/span&gt;&lt;/p&gt;
+&lt;p dir="ltr" style="line-height:1.15;margin-top:0pt;margin-bottom:0pt;"&gt;
+	&amp;nbsp;&lt;/p&gt;
+&lt;p dir="ltr" style="line-height:1.15;margin-top:0pt;margin-bottom:0pt;"&gt;
+	&lt;span style="background-color: transparent; font-size: 15px; font-family: Lato; color: rgb(0, 0, 0); vertical-align: baseline; white-space: pre-wrap;"&gt;We first experience these things through screens, so that when we do eventually &lt;/span&gt;&lt;span style="background-color: transparent; font-size: 15px; font-family: Lato; color: rgb(0, 0, 0); font-style: italic; vertical-align: baseline; white-space: pre-wrap;"&gt;really &lt;/span&gt;&lt;span style="background-color: transparent; font-size: 15px; font-family: Lato; color: rgb(0, 0, 0); vertical-align: baseline; white-space: pre-wrap;"&gt;experience them, media has primed our thinking, and often the reality is disappointing&amp;mdash;or in the case of war, &lt;em&gt;horrifying&lt;/em&gt;. &lt;/span&gt;&lt;/p&gt;
+&lt;p dir="ltr" style="line-height:1.15;margin-top:0pt;margin-bottom:0pt;"&gt;
+	&amp;nbsp;&lt;/p&gt;
+&lt;p dir="ltr" style="line-height:1.15;margin-top:0pt;margin-bottom:0pt;"&gt;
+	&lt;span style="background-color: transparent; color: rgb(0, 0, 0); font-family: Lato; font-size: 15px; white-space: pre-wrap; line-height: 1.15;"&gt;Here is an amusing personal story to illustrate:&lt;/span&gt;&lt;/p&gt;
+&lt;p dir="ltr" style="line-height:1.15;margin-top:0pt;margin-bottom:0pt;margin-left: 36pt;"&gt;
+	&amp;nbsp;&lt;/p&gt;
+&lt;p dir="ltr" style="line-height:1.15;margin-top:0pt;margin-bottom:0pt;margin-left: 36pt;"&gt;
+	&lt;span id="docs-internal-guid-f8f8b1f3-b2e2-0ede-7f6c-42fe32f7c535"&gt;&lt;span style="font-size: 15px; font-family: Lato; color: rgb(0, 0, 0); background-color: transparent; vertical-align: baseline; white-space: pre-wrap;"&gt;The &amp;quot;defining moment&amp;quot; of my life was sitting on a green carpet in front of a grainy old television, my father snoring on the sofa behind me dressed in only his underwear, and watching Star Wars&lt;/span&gt;&lt;/span&gt;&lt;span style="line-height: 1.15;"&gt;&lt;span style="font-size: 15px; font-family: Lato; color: rgb(0, 0, 0); background-color: transparent; vertical-align: baseline; white-space: pre-wrap;"&gt;. I remember the feeling, being completely and utterly captivated, inspired, chills running down my spine. I also remember turning around to look at my father to see him practically naked and scratching his balls. Star Destroyers&lt;/span&gt;&lt;/span&gt;&lt;span style="background-color: transparent; color: rgb(0, 0, 0); font-family: Lato; font-size: 15px; white-space: pre-wrap; line-height: 1.15;"&gt;, light sabers&lt;/span&gt;&lt;span style="background-color: transparent; color: rgb(0, 0, 0); font-family: Lato; font-size: 15px; line-height: 1.15; white-space: pre-wrap;"&gt;, the Force&lt;/span&gt;&lt;span style="background-color: transparent; color: rgb(0, 0, 0); font-family: Lato; font-size: 15px; line-height: 1.15; white-space: pre-wrap;"&gt;, my hairy father drooling on the sofa... subconsciously, something clicked. No longer would I be content with &amp;ldquo;normal&amp;rdquo; middle class existence. I would, I told myself, seek adventure, do something amazing, and someday walk among the stars.&lt;/span&gt;&lt;/p&gt;
+&lt;p dir="ltr" style="line-height:1.15;margin-top:0pt;margin-bottom:0pt;margin-left: 36pt;"&gt;
+	&amp;nbsp;&lt;/p&gt;
+&lt;p dir="ltr" style="line-height:1.15;margin-top:0pt;margin-bottom:0pt;margin-left: 36pt;"&gt;
+	&lt;span id="docs-internal-guid-f8f8b1f3-b2e2-0ede-7f6c-42fe32f7c535"&gt;&lt;span style="font-size: 15px; font-family: Lato; color: rgb(0, 0, 0); background-color: transparent; vertical-align: baseline; white-space: pre-wrap;"&gt;The next day in my backyard, I was playing Jedi&lt;/span&gt;&lt;/span&gt;&lt;span style="background-color: transparent; color: rgb(0, 0, 0); font-family: Lato; font-size: 15px; white-space: pre-wrap; line-height: 1.15;"&gt; with a baseball bat and it flung out of my hands to come to a rest in the grass. I closed my eyes and stretched out my hand, trying to feel the Force, really wanting to believe in some &lt;em&gt;magical power&lt;/em&gt; that Jesus might grant me. &lt;/span&gt;&lt;/p&gt;
+&lt;p dir="ltr" style="line-height:1.15;margin-top:0pt;margin-bottom:0pt;margin-left: 36pt;"&gt;
+	&lt;span id="docs-internal-guid-f8f8b1f3-b2e2-0ede-7f6c-42fe32f7c535"&gt;&lt;span style="font-size: 15px; font-family: Lato; color: rgb(0, 0, 0); background-color: transparent; vertical-align: baseline; white-space: pre-wrap;"&gt;But the bat didn&amp;rsquo;t move.&lt;/span&gt;&lt;/span&gt;&lt;/p&gt;
+&lt;p dir="ltr" style="line-height:1.15;margin-top:0pt;margin-bottom:0pt;margin-left: 36pt;"&gt;
+	&amp;nbsp;&lt;/p&gt;
+&lt;p dir="ltr" style="line-height:1.15;margin-top:0pt;margin-bottom:0pt;margin-left: 36pt;"&gt;
+	&lt;span id="docs-internal-guid-f8f8b1f3-b2e2-0ede-7f6c-42fe32f7c535"&gt;&lt;span style="font-size: 15px; font-family: Lato; color: rgb(0, 0, 0); background-color: transparent; vertical-align: baseline; white-space: pre-wrap;"&gt;It was like finding out Santa Claus wasn&amp;rsquo;t real; another conformation of the fact that this world was a sad, boring, non-magical place: a world of insurance agents rather than Jedi&lt;/span&gt;&lt;/span&gt;&lt;span style="background-color: transparent; color: rgb(0, 0, 0); font-family: Lato; font-size: 15px; white-space: pre-wrap; line-height: 1.15;"&gt;. I cried, having witnessed the danger of impossible expectations that could never be satisfied.&lt;/span&gt;&lt;/p&gt;
+&lt;p dir="ltr" style="line-height:1.15;margin-top:0pt;margin-bottom:0pt;"&gt;
+	&amp;nbsp;&lt;/p&gt;
+&lt;p dir="ltr" style="line-height:1.15;margin-top:0pt;margin-bottom:0pt;"&gt;
+	&lt;span style="background-color: transparent; font-size: 15px; font-family: Lato; color: rgb(0, 0, 0); vertical-align: baseline; white-space: pre-wrap;"&gt;There&amp;rsquo;s sometimes this weird contrast in our lives&amp;mdash;the difference felt between the real world and the screen world, the world of stories. Real life isn&amp;#39;t like a fantasy, or advertisements. One of the key ideas behind Neal Gabler&amp;#39;s book &lt;/span&gt;&lt;span style="background-color: transparent; font-size: 15px; font-family: Lato; color: rgb(0, 0, 0); font-style: italic; vertical-align: baseline; white-space: pre-wrap;"&gt;Life the Movie &lt;/span&gt;&lt;span style="background-color: transparent; font-size: 15px; font-family: Lato; color: rgb(0, 0, 0); vertical-align: baseline; white-space: pre-wrap;"&gt;is how we increasingly understand our lives in terms of media. He writes, &amp;#39;what the movies provided... was a tangible model to which one could conform life and a standard against one could measure it... Why can&amp;rsquo;t life be more like the movies? Viewers asked, and then answered that it could.&amp;#39;⁠&lt;/span&gt;&lt;/p&gt;
+&lt;p dir="ltr" style="line-height:1.15;margin-top:0pt;margin-bottom:0pt;"&gt;
+	&amp;nbsp;&lt;/p&gt;
+&lt;p dir="ltr" style="line-height:1.15;margin-top:0pt;margin-bottom:0pt;"&gt;
+	&lt;span style="background-color: transparent; font-size: 15px; font-family: Lato; color: rgb(0, 0, 0); vertical-align: baseline; white-space: pre-wrap;"&gt;But 9 times out of 10, when I shave with a Gillette razor beautiful women &lt;/span&gt;&lt;span style="background-color: transparent; font-size: 15px; font-family: Lato; color: rgb(0, 0, 0); font-weight: bold; vertical-align: baseline; white-space: pre-wrap;"&gt;don&amp;rsquo;t &lt;/span&gt;&lt;span style="background-color: transparent; font-size: 15px; font-family: Lato; color: rgb(0, 0, 0); vertical-align: baseline; white-space: pre-wrap;"&gt;come into the room wrapped in towels and eager to touch my face.&lt;/span&gt;&lt;/p&gt;
+&lt;p dir="ltr" style="line-height:1.15;margin-top:0pt;margin-bottom:0pt;"&gt;
+	&amp;nbsp;&lt;/p&gt;
+&lt;p dir="ltr" style="line-height:1.15;margin-top:0pt;margin-bottom:0pt;"&gt;
+	&lt;span style="background-color: transparent; color: rgb(0, 0, 0); font-family: Lato; font-size: 15px; white-space: pre-wrap; line-height: 1.15;"&gt;It seems silly to even write that, but media has power. What would you think about if your non-pornstar imperfect partner doesn&amp;#39;t scream orgasmically during your awkward sex?&lt;/span&gt;&lt;/p&gt;
+&lt;p dir="ltr" style="line-height:1.15;margin-top:0pt;margin-bottom:0pt;"&gt;
+	&amp;nbsp;&lt;/p&gt;
+&lt;p dir="ltr" style="line-height:1.15;margin-top:0pt;margin-bottom:0pt;"&gt;
+	&lt;span style="background-color: transparent; color: rgb(0, 0, 0); font-family: Lato; font-size: 15px; white-space: pre-wrap; line-height: 1.15;"&gt;Would it be surprising given the thousands of advertisements that surround us each day that we are constantly thinking of sexual partners in terms of products? &lt;/span&gt;&lt;/p&gt;
+&lt;p dir="ltr" style="line-height:1.15;margin-top:0pt;margin-bottom:0pt;"&gt;
+	&amp;nbsp;&lt;/p&gt;
+&lt;p dir="ltr" style="line-height:1.15;margin-top:0pt;margin-bottom:0pt;"&gt;
+	&lt;span style="background-color: transparent; color: rgb(0, 0, 0); font-family: Lato; font-size: 15px; white-space: pre-wrap; line-height: 1.15;"&gt;Can&amp;#39;t we just throw away relationships like we do a two-year-old iPhone? &lt;/span&gt;&lt;/p&gt;
+&lt;p dir="ltr" style="line-height:1.15;margin-top:0pt;margin-bottom:0pt;"&gt;
+	&amp;nbsp;&lt;/p&gt;
+&lt;p dir="ltr" style="line-height:1.15;margin-top:0pt;margin-bottom:0pt;"&gt;
+	&lt;span style="background-color: transparent; color: rgb(0, 0, 0); font-family: Lato; font-size: 15px; white-space: pre-wrap; line-height: 1.15;"&gt;Won&amp;#39;t something new and better come along for us to consume?&lt;/span&gt;&lt;/p&gt;
+&lt;p dir="ltr" style="line-height:1.15;margin-top:0pt;margin-bottom:0pt;"&gt;
+	&amp;nbsp;&lt;/p&gt;
+&lt;p dir="ltr" style="line-height:1.15;margin-top:0pt;margin-bottom:0pt;"&gt;
+	&lt;span style="background-color: transparent; color: rgb(0, 0, 0); font-family: Lato; font-size: 15px; white-space: pre-wrap; line-height: 1.15;"&gt;Isn&amp;#39;t this how we consume pornography? Oscillating between stimulation and boredom, moving on to the next thing, building a tolerance. We consume it, and it does something to us.&lt;/span&gt;&lt;/p&gt;
+&lt;p dir="ltr" style="line-height:1.15;margin-top:0pt;margin-bottom:0pt;"&gt;
+	&amp;nbsp;&lt;/p&gt;
+&lt;p dir="ltr" style="line-height:1.15;margin-top:0pt;margin-bottom:0pt;"&gt;
+	&lt;span style="background-color: transparent; color: rgb(0, 0, 0); font-family: Lato; font-size: 15px; white-space: pre-wrap; line-height: 1.15;"&gt;What is this ever-increasing on-rush of images doing to us?&lt;/span&gt;&lt;/p&gt;
+&lt;p dir="ltr" style="line-height:1.15;margin-top:0pt;margin-bottom:0pt;"&gt;
+	&amp;nbsp;&lt;/p&gt;
+&lt;p dir="ltr" style="line-height:1.15;margin-top:0pt;margin-bottom:0pt;"&gt;
+	&lt;span style="background-color: transparent; color: rgb(0, 0, 0); font-family: Lato; font-size: 15px; white-space: pre-wrap; line-height: 1.15;"&gt;The future of romance is filled with more difficult questions than answers. Answers that can only be answered on a person by person basis. &lt;/span&gt;&lt;/p&gt;
+&lt;p dir="ltr" style="line-height:1.15;margin-top:0pt;margin-bottom:0pt;"&gt;
+	&amp;nbsp;&lt;/p&gt;
+&lt;p dir="ltr" style="line-height:1.15;margin-top:0pt;margin-bottom:0pt;"&gt;
+	&lt;span id="docs-internal-guid-f8f8b1f3-b2e2-0ede-7f6c-42fe32f7c535"&gt;&lt;span style="font-size: 15px; font-family: Lato; color: rgb(0, 0, 0); background-color: transparent; vertical-align: baseline; white-space: pre-wrap;"&gt;It&amp;rsquo;s been wonderful hearing the variety of responses and interpretations I&amp;rsquo;ve gotten regarding 23rd Century Romance. This pleases me very much, as I have gone to great lengths to preserve a certain sense of moral ambiguity about everything in the book. Even the sparse detail was a style choice that makes for a quick read where you can shape the characters in your mind how you will. The point of it all is that &lt;/span&gt;&lt;span style="font-size: 15px; font-family: Lato; color: rgb(0, 0, 0); background-color: transparent; font-style: italic; vertical-align: baseline; white-space: pre-wrap;"&gt;your&lt;/span&gt;&lt;span style="font-size: 15px; font-family: Lato; color: rgb(0, 0, 0); background-color: transparent; vertical-align: baseline; white-space: pre-wrap;"&gt; interpretation matters.&lt;/span&gt;&lt;/span&gt;&lt;/p&gt;
+&lt;p dir="ltr" style="line-height:1.15;margin-top:0pt;margin-bottom:0pt;"&gt;
+	&amp;nbsp;&lt;/p&gt;
+&lt;p dir="ltr" style="line-height:1.15;margin-top:0pt;margin-bottom:0pt;"&gt;
+	&lt;span style="background-color: transparent; color: rgb(0, 0, 0); font-family: Lato; font-size: 15px; white-space: pre-wrap; line-height: 1.15;"&gt;Use your imagination.&lt;/span&gt;&lt;/p&gt;
+&lt;p dir="ltr" style="line-height:1.15;margin-top:0pt;margin-bottom:0pt;"&gt;
+	&amp;nbsp;&lt;/p&gt;
+&lt;p dir="ltr" style="line-height:1.15;margin-top:0pt;margin-bottom:0pt;"&gt;
+	&lt;span style="background-color: transparent; color: rgb(0, 0, 0); font-family: Lato; font-size: 15px; white-space: pre-wrap; line-height: 1.15;"&gt;Humans lives have changed radically in the last 50 years, especially in comparison to what they looked like for most of the thousand years we have been a species. Technology is throwing us into new environments and situations the human race has never encountered before, and we must deal with the questions and challenges as they are presented to us. &lt;/span&gt;&lt;/p&gt;
+&lt;p dir="ltr" style="line-height:1.15;margin-top:0pt;margin-bottom:0pt;"&gt;
+	&amp;nbsp;&lt;/p&gt;
+&lt;p dir="ltr" style="line-height:1.15;margin-top:0pt;margin-bottom:0pt;"&gt;
+	&lt;span style="background-color: transparent; color: rgb(0, 0, 0); font-family: Lato; font-size: 15px; white-space: pre-wrap; line-height: 1.15;"&gt;As a science fiction writer, my goal is to write stories that help us think about the future. In dealing with the rise of the Virtual, we need to ask intelligent questions about what the proliferation of screens might be doing to us. &lt;/span&gt;&lt;/p&gt;
+&lt;p dir="ltr" style="line-height:1.15;margin-top:0pt;margin-bottom:0pt;"&gt;
+	&amp;nbsp;&lt;/p&gt;
+&lt;p dir="ltr" style="line-height:1.15;margin-top:0pt;margin-bottom:0pt;"&gt;
+	&lt;span style="background-color: transparent; color: rgb(0, 0, 0); font-family: Lato; font-size: 15px; white-space: pre-wrap; line-height: 1.15;"&gt;I have my own take, but I&amp;rsquo;ll wait until after more people have read the story until I reveal my thoughts on the story. &lt;/span&gt;&lt;/p&gt;
+&lt;p dir="ltr" style="line-height:1.15;margin-top:0pt;margin-bottom:0pt;"&gt;
+	&amp;nbsp;&lt;/p&gt;
+&lt;p dir="ltr" style="line-height:1.15;margin-top:0pt;margin-bottom:0pt;"&gt;
+	&lt;span style="background-color: transparent; font-size: 15px; font-family: Lato; color: rgb(0, 0, 0); vertical-align: baseline; white-space: pre-wrap;"&gt;But on a general level, for me, &lt;/span&gt;&lt;span style="background-color: transparent; font-size: 15px; font-family: Lato; color: rgb(0, 0, 0); font-style: italic; vertical-align: baseline; white-space: pre-wrap;"&gt;23&lt;/span&gt;&lt;span style="background-color: transparent; font-size: 9px; font-family: Lato; color: rgb(0, 0, 0); font-style: italic; vertical-align: super; white-space: pre-wrap;"&gt;rd&lt;/span&gt;&lt;span style="background-color: transparent; font-size: 15px; font-family: Lato; color: rgb(0, 0, 0); font-style: italic; vertical-align: baseline; white-space: pre-wrap;"&gt; Century Romance&lt;/span&gt;&lt;span style="background-color: transparent; font-size: 15px; font-family: Lato; color: rgb(0, 0, 0); vertical-align: baseline; white-space: pre-wrap;"&gt; is about the dangers of falling in love with the idea of something we can never really have. &lt;/span&gt;&lt;/p&gt;
+&lt;p dir="ltr" style="line-height:1.15;margin-top:0pt;margin-bottom:0pt;"&gt;
+	&amp;nbsp;&lt;/p&gt;
+&lt;p dir="ltr" style="line-height:1.15;margin-top:0pt;margin-bottom:0pt;"&gt;
+	&lt;span style="background-color: transparent; color: rgb(0, 0, 0); font-family: Lato; font-size: 15px; white-space: pre-wrap; line-height: 1.15;"&gt;Thus concludes my thoughts.&lt;/span&gt;&lt;/p&gt;
+&lt;p dir="ltr" style="line-height:1.15;margin-top:0pt;margin-bottom:0pt;"&gt;
+	&amp;nbsp;&lt;/p&gt;
+&lt;p dir="ltr" style="line-height:1.15;margin-top:0pt;margin-bottom:0pt;"&gt;
+	&lt;span style="background-color: transparent; color: rgb(0, 0, 0); font-family: Lato; font-size: 15px; font-weight: bold; white-space: pre-wrap; line-height: 1.15;"&gt;The &amp;quot;Campaign&amp;quot;&lt;/span&gt;&lt;/p&gt;
+&lt;p dir="ltr" style="line-height:1.15;margin-top:0pt;margin-bottom:0pt;"&gt;
+	&amp;nbsp;&lt;/p&gt;
+&lt;p dir="ltr" style="line-height:1.15;margin-top:0pt;margin-bottom:0pt;"&gt;
+	&lt;span id="docs-internal-guid-f8f8b1f3-b2e2-0ede-7f6c-42fe32f7c535"&gt;&lt;span style="font-size: 15px; font-family: Lato; color: rgb(0, 0, 0); background-color: transparent; vertical-align: baseline; white-space: pre-wrap;"&gt;Reading the book is payment enough for me, but I would also greatly appreciate donations, not only to help me break even on &lt;/span&gt;&lt;span style="font-size: 15px; font-family: Lato; color: rgb(0, 0, 0); background-color: transparent; font-style: italic; vertical-align: baseline; white-space: pre-wrap;"&gt;23&lt;/span&gt;&lt;span style="font-size: 9px; font-family: Lato; color: rgb(0, 0, 0); background-color: transparent; font-style: italic; vertical-align: super; white-space: pre-wrap;"&gt;rd&lt;/span&gt;&lt;span style="font-size: 15px; font-family: Lato; color: rgb(0, 0, 0); background-color: transparent; font-style: italic; vertical-align: baseline; white-space: pre-wrap;"&gt; Century Romance &lt;/span&gt;&lt;span style="font-size: 15px; font-family: Lato; color: rgb(0, 0, 0); background-color: transparent; vertical-align: baseline; white-space: pre-wrap;"&gt;but to help raise enough money to spend more time working on my upcoming non-fiction book: &lt;/span&gt;&lt;span style="font-size: 15px; font-family: Lato; color: rgb(0, 0, 0); background-color: transparent; font-style: italic; vertical-align: baseline; white-space: pre-wrap;"&gt;How to become a better Christian by becoming an Atheist (and visa versa)&lt;/span&gt;&lt;span style="font-size: 15px; font-family: Lato; color: rgb(0, 0, 0); background-color: transparent; vertical-align: baseline; white-space: pre-wrap;"&gt;.&lt;/span&gt;&lt;/span&gt;&lt;/p&gt;
+ </content>
+ <dcterms:identifier xsi:type="dcterms:URI">
+  urn:ISBN:9781492134237
+ </dcterms:identifier>
+ <category term="Fiction">
+ </category>
+ <link href="https://unglue.it/api/opds/kw.Fiction/?order_by=popular&amp;page=0" rel="related" title="Fiction" type="application/atom+xml; profile=opds-catalog ;kind=acquisition; charset=utf-8"/>
+ <category term="Science Fiction">
+ </category>
+ <link href="https://unglue.it/api/opds/kw.Science%20Fiction/?order_by=popular&amp;page=0" rel="related" title="Science Fiction" type="application/atom+xml; profile=opds-catalog ;kind=acquisition; charset=utf-8"/>
+ <schema:Rating schema:ratingValue="5">
+ </schema:Rating>
+</entry>
+</feed>

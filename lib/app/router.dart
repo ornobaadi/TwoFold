@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 
 import '../data/models.dart';
-import '../features/library/library_screen.dart';
+import 'home_shell.dart';
+import '../features/find/find_screen.dart';
+import '../features/library/book_details_screen.dart';
 import '../features/library/new_book_screen.dart';
 import '../features/listen/listen_screen.dart';
 import '../features/reader/reader_screen.dart';
@@ -41,8 +43,14 @@ Future<Book?> openNewBook(BuildContext context) =>
 Future<void> openEditBook(BuildContext context, Book book) =>
     Navigator.of(context).push(fadeRoute(NewBookScreen(editing: book)));
 
+Future<void> openBookDetails(BuildContext context, Book book) =>
+    Navigator.of(context).push(fadeRoute(BookDetailsScreen(bookId: book.id)));
+
+Future<void> openFind(BuildContext context) =>
+    Navigator.of(context).push(fadeRoute(const FindScreen()));
+
 Future<void> openSettings(BuildContext context) =>
     Navigator.of(context).push(fadeRoute(const SettingsScreen()));
 
 Widget homeScreen({String? resumeBookId}) =>
-    LibraryScreen(resumeBookId: resumeBookId);
+    HomeShell(resumeBookId: resumeBookId);

@@ -340,15 +340,15 @@ void main() {
     }
     await tester.enterText(find.byType(TextField), 'mock turtle');
     await tester.pump(const Duration(milliseconds: 500));
-    await _settle(tester, () => find.byType(Card).evaluate().isNotEmpty);
+    await _settle(tester, () => find.byKey(const ValueKey('search-hit-0')).evaluate().isNotEmpty);
     await _settle(tester, () => false);
 
     final firstLabel = tester
         .widget<Text>(find.descendant(
-            of: find.byType(Card).first, matching: find.byType(Text)).first)
+            of: find.byKey(const ValueKey('search-hit-0')), matching: find.byType(Text)).first)
         .data!;
     final expected = firstLabel.replaceFirst('Page ', '');
-    await tester.tap(find.byType(Card).first);
+    await tester.tap(find.byKey(const ValueKey('search-hit-0')));
     await tester.pump(const Duration(milliseconds: 400));
     await _settle(tester, () => false);
 
@@ -365,6 +365,9 @@ void main() {
     await tester.pump(const Duration(milliseconds: 300));
     expect(find.byTooltip('Next result'), findsNothing);
 
+    // The page turn above saves to the database; let it finish, or closing
+    // the database waits for it forever.
+    await _settle(tester, () => false);
     await tester.pumpWidget(const SizedBox());
     await tester.pump(const Duration(seconds: 5));
     await tester.runAsync(() => db.close());

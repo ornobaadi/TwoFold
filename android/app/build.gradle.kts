@@ -37,6 +37,10 @@ android {
         versionName = flutter.versionName
     }
 
+    buildFeatures {
+        resValues = true
+    }
+
     signingConfigs {
         if (keyProperties.isNotEmpty()) {
             create("upload") {
@@ -48,8 +52,27 @@ android {
         }
     }
 
+    // The Play Store app is the release build. Debug and profile builds are
+    // "TwoFold Dev": a different application id and name, so they install next
+    // to the Play version with their own library and settings, and never ask to
+    // replace it (the signing keys differ).
     buildTypes {
+        debug {
+            applicationIdSuffix = ".dev"
+            resValue("string", "app_name", "TwoFold Dev")
+        }
+        // `flutter build apk --profile`: optimised like release, signed with the
+        // debug key, no shrinking so it builds quickly.
+        getByName("profile") {
+            applicationIdSuffix = ".dev"
+            resValue("string", "app_name", "TwoFold Dev")
+            signingConfig = signingConfigs.getByName("debug")
+            isMinifyEnabled = false
+            isShrinkResources = false
+            ndk { debugSymbolLevel = "NONE" }
+        }
         release {
+            resValue("string", "app_name", "TwoFold")
             signingConfig = signingConfigs.getByName(
                 if (keyProperties.isNotEmpty()) "upload" else "debug",
             )

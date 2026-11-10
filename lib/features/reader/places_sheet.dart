@@ -5,20 +5,11 @@ import 'package:uuid/uuid.dart';
 import '../../app/format.dart';
 import '../../app/theme.dart';
 import '../../audio/player_controller.dart';
-import '../../audio/sync_map.dart';
 import '../../data/models.dart';
 import '../player/player_bar.dart';
 import 'pane.dart';
 
-/// The estimator for a book, from the spots the user said match.
-SyncMap syncMapFor(List<PlaceMark> marks, Duration total) => SyncMap([
-  if (total > Duration.zero)
-    for (final m in marks)
-      if (m.synced && m.audioMs != null)
-        SyncPoint(m.percent, m.audioMs! / total.inMilliseconds),
-]);
-
-/// Saved spots, and moving the page and the audio to match each other.
+/// Saved spots: page and audio position, to come back to.
 class PlacesSheet extends ConsumerStatefulWidget {
   const PlacesSheet({
     super.key,
@@ -83,21 +74,53 @@ class _PlacesSheetState extends ConsumerState<PlacesSheet> {
     Navigator.of(context).pop();
   }
 
-  void _moveAudioToPage() {
-    final handler = ref.read(audioHandlerProvider);
-    final total = handler.total;
-    final f = syncMapFor(_marks, total).audioAt(widget.percent);
-    handler.seek(total * f);
-    Navigator.of(context).pop();
+  PlaceMark? _deleted;
+
+  Future<void> _delete(PlaceMark m) async {
+    await ref.read(bookRepoProvider).deleteMark(m.id);
+    _deleted = m;
+    await _reload();
   }
 
-  void _movePageToAudio() {
-    final handler = ref.read(audioHandlerProvider);
-    final total = handler.total;
-    if (total <= Duration.zero) return;
-    final f = handler.absolutePosition.inMilliseconds / total.inMilliseconds;
-    widget.actions?.goToFraction(syncMapFor(_marks, total).bookAt(f));
-    Navigator.of(context).pop();
+  Future<void> _undoDelete() async {
+    final m = _deleted;
+    if (m == null) return;
+    _deleted = null;
+    await ref.read(bookRepoProvider).addMark(m);
+    await _reload();
+  }
+
+  Future<void> _rename(PlaceMark m) async {
+    final text = TextEditingController(text: m.note ?? '');
+    final note = await showDialog<String>(
+      context: context,
+      builder: (d) => AlertDialog(
+        title: const Text('Name this place'),
+        content: TextField(
+          controller: text,
+          autofocus: true,
+          maxLength: 60,
+          textCapitalization: TextCapitalization.sentences,
+          decoration: const InputDecoration(
+            hintText: 'Where the letter arrives',
+          ),
+          onSubmitted: (v) => Navigator.of(d).pop(v),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(d).pop(),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(d).pop(text.text),
+            child: const Text('Save'),
+          ),
+        ],
+      ),
+    );
+    if (note == null) return;
+    await ref.read(bookRepoProvider).renameMark(m.id, note);
+    await _reload();
   }
 
   @override
@@ -105,6 +128,15 @@ class _PlacesSheetState extends ConsumerState<PlacesSheet> {
     final theme = Theme.of(context);
     final c = context.twofold;
     final hasAudio = _hasAudio;
+    final handler = ref.read(audioHandlerProvider);
+    // Old "page and audio match" spots from the removed sync are not places.
+    final places = _marks.where((m) => !m.synced).toList();
+    final here = [
+      widget.pageLabel.isEmpty ? 'This page' : widget.pageLabel,
+      if (hasAudio) formatTime(handler.absolutePosition),
+    ].join('  ·  ');
+    final alreadySaved = places.any((m) => m.location == widget.location);
+
     return ConstrainedBox(
       constraints: BoxConstraints(
         maxHeight: MediaQuery.sizeOf(context).height * 0.85,
@@ -115,77 +147,162 @@ class _PlacesSheetState extends ConsumerState<PlacesSheet> {
           padding: const EdgeInsets.only(bottom: Space.l),
           children: [
             const SheetTitle('My places'),
+            // Where you are now, and one tap to keep it.
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: Space.l),
-              child: FilledButton.tonalIcon(
-                onPressed: () => _save(synced: false),
-                icon: const Icon(Icons.bookmark_add_outlined),
-                label: const Text('Save this spot'),
+              child: Card(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(
+                    Space.l,
+                    Space.m,
+                    Space.m,
+                    Space.m,
+                  ),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'You are here',
+                              style: theme.textTheme.labelMedium,
+                            ),
+                            const SizedBox(height: 2),
+                            Text(here, style: theme.textTheme.titleMedium),
+                          ],
+                        ),
+                      ),
+                      FilledButton.icon(
+                        style: FilledButton.styleFrom(
+                          backgroundColor: theme.colorScheme.onSurface,
+                          foregroundColor: theme.colorScheme.surface,
+                        ),
+                        onPressed: alreadySaved
+                            ? null
+                            : () => _save(synced: false),
+                        icon: Icon(
+                          alreadySaved
+                              ? Icons.bookmark_added_rounded
+                              : Icons.bookmark_add_outlined,
+                          size: 18,
+                        ),
+                        label: Text(alreadySaved ? 'Saved' : 'Save'),
+                      ),
+                    ],
+                  ),
+                ),
               ),
             ),
-            for (final m in _marks)
-              ListTile(
-                leading: Icon(
-                  m.synced
-                      ? Icons.link_rounded
-                      : Icons.bookmark_outline_rounded,
-                  color: c.muted,
+            if (_deleted != null)
+              Padding(
+                padding: const EdgeInsets.fromLTRB(
+                  Space.l,
+                  Space.s,
+                  Space.s,
+                  0,
                 ),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        'Place removed',
+                        style: theme.textTheme.bodyMedium,
+                      ),
+                    ),
+                    TextButton(
+                      onPressed: _undoDelete,
+                      child: const Text('Undo'),
+                    ),
+                  ],
+                ),
+              ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(
+                Space.l,
+                Space.l,
+                Space.l,
+                Space.xs,
+              ),
+              child: Text(
+                places.isEmpty
+                    ? 'Places you save show up here. Each keeps the page'
+                          '${hasAudio ? ' and the second of audio' : ''}, '
+                          'so you can come back to both.'
+                    : hasAudio
+                    ? 'Tap a place to go back to its page and audio.'
+                    : 'Tap a place to go back to its page.',
+                style: theme.textTheme.bodySmall,
+              ),
+            ),
+            for (final m in places)
+              ListTile(
+                leading: Icon(Icons.bookmark_outline_rounded, color: c.muted),
                 title: Text(
-                  [
-                    m.pageLabel,
-                    if (m.audioMs != null)
-                      formatTime(Duration(milliseconds: m.audioMs!)),
-                  ].join('  ·  '),
+                  m.note ?? m.pageLabel,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
                 subtitle: Text(
-                  _when(m.createdAt),
-                  style: theme.textTheme.labelMedium,
+                  [
+                    if (m.note != null) m.pageLabel,
+                    if (m.audioMs != null)
+                      formatTime(Duration(milliseconds: m.audioMs!)),
+                    whenSaved(
+                      DateTime.fromMillisecondsSinceEpoch(m.createdAt),
+                      DateTime.now(),
+                    ),
+                  ].join('  ·  '),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
                 onTap: () => _open(m),
-                trailing: IconButton(
-                  tooltip: 'Delete this spot',
-                  onPressed: () async {
-                    await ref.read(bookRepoProvider).deleteMark(m.id);
-                    await _reload();
-                  },
-                  icon: Icon(Icons.close_rounded, color: c.muted),
+                onLongPress: () => _rename(m),
+                trailing: PopupMenuButton<String>(
+                  tooltip: 'Options for this place',
+                  icon: Icon(Icons.more_vert_rounded, color: c.muted),
+                  onSelected: (v) => v == 'name' ? _rename(m) : _delete(m),
+                  itemBuilder: (_) => [
+                    PopupMenuItem(
+                      value: 'name',
+                      child: Text(m.note == null ? 'Name it' : 'Rename'),
+                    ),
+                    const PopupMenuItem(value: 'delete', child: Text('Remove')),
+                  ],
                 ),
               ),
-            if (hasAudio) ...[
-              const SizedBox(height: Space.l),
-              const SheetTitle('Match page and audio'),
-              ListTile(
-                leading: const Icon(Icons.headphones_outlined),
-                title: const Text('Move the audio to this page'),
-                subtitle: const Text('Close, not exact'),
-                onTap: _moveAudioToPage,
-              ),
-              ListTile(
-                leading: const Icon(Icons.menu_book_outlined),
-                title: const Text('Go to the page the audio is on'),
-                subtitle: const Text('Close, not exact'),
-                onTap: _movePageToAudio,
-              ),
-              ListTile(
-                leading: const Icon(Icons.link_rounded),
-                title: const Text('This page and the audio match right now'),
-                subtitle: const Text(
-                  'Teaches the app. Do this a few times and the two moves above get much closer.',
-                ),
-                onTap: () => _save(synced: true),
-              ),
-            ],
           ],
         ),
       ),
     );
   }
+}
 
-  String _when(int ms) {
-    final d = DateTime.fromMillisecondsSinceEpoch(ms);
-    final hh = d.hour.toString().padLeft(2, '0');
-    final mm = d.minute.toString().padLeft(2, '0');
-    return '${d.day}/${d.month}/${d.year}  $hh:$mm';
-  }
+/// "Just now", "12 min ago", "Today 14:05", "Yesterday", "3 Nov".
+String whenSaved(DateTime d, DateTime now) {
+  final mins = now.difference(d).inMinutes;
+  if (mins < 1) return 'Just now';
+  if (mins < 60) return '$mins min ago';
+  final hh = d.hour.toString().padLeft(2, '0');
+  final mm = d.minute.toString().padLeft(2, '0');
+  final today = DateTime(now.year, now.month, now.day);
+  final days = today.difference(DateTime(d.year, d.month, d.day)).inDays;
+  if (days == 0) return 'Today $hh:$mm';
+  if (days == 1) return 'Yesterday';
+  const months = [
+    'Jan',
+    'Feb',
+    'Mar',
+    'Apr',
+    'May',
+    'Jun',
+    'Jul',
+    'Aug',
+    'Sep',
+    'Oct',
+    'Nov',
+    'Dec',
+  ];
+  final label = '${d.day} ${months[d.month - 1]}';
+  return d.year == now.year ? label : '$label ${d.year}';
 }

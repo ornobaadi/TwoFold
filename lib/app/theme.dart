@@ -1,24 +1,16 @@
 import 'package:flutter/material.dart';
 
-import 'bubbly.dart';
-
 enum ReaderTheme { system, paper, sepia, night }
 
 enum ReadingFont { serif, sans }
 
 /// The app's colour. Works with every background (Paper, Sepia, Night).
 enum AppPalette {
-  blueberry('Blueberry', Color(0xFF4F46E5)),
-  ocean('Ocean', Color(0xFF0B7FD4)),
-  lagoon('Lagoon', Color(0xFF00A3A3)),
-  mint('Mint', Color(0xFF16B57F)),
-  forest('Forest', Color(0xFF2E7D32)),
-  sunshine('Sunshine', Color(0xFFF5B800)),
-  ember('Ember', Color(0xFFB4532A)),
-  cherry('Cherry', Color(0xFFD81B3F)),
-  rose('Rose', Color(0xFFE5508E)),
-  grape('Grape', Color(0xFF8E24C9)),
-  graphite('Graphite', Color(0xFF5F6368));
+  indigo('Indigo', Color(0xFF3F51B5)),
+  forest('Forest', Color(0xFF2E6B4A)),
+  clay('Clay', Color(0xFFB4532A)),
+  plum('Plum', Color(0xFF7B3F6E)),
+  ink('Ink', Color(0xFF2B2A27));
 
   const AppPalette(this.label, this.seed);
 
@@ -26,28 +18,31 @@ enum AppPalette {
   final Color seed;
 }
 
-/// Material colour roles for a background and a colour. The page stays quiet;
-/// the containers around it carry the colour.
-ColorScheme schemeFor(ReaderTheme t, [AppPalette palette = AppPalette.blueberry]) {
+/// Colour roles for a background and a colour. Folio: paper and ink, with the
+/// chosen colour used sparingly, for progress, links and the current choice.
+ColorScheme schemeFor(ReaderTheme t, [AppPalette palette = AppPalette.indigo]) {
   final dark = t == ReaderTheme.night;
   final base = ColorScheme.fromSeed(
     seedColor: palette.seed,
     brightness: dark ? Brightness.dark : Brightness.light,
-    dynamicSchemeVariant: palette == AppPalette.graphite
+    dynamicSchemeVariant: palette == AppPalette.ink
         ? DynamicSchemeVariant.monochrome
-        : DynamicSchemeVariant.vibrant,
+        : DynamicSchemeVariant.tonalSpot,
   );
   // Near-black or parchment, leaning slightly toward the chosen colour.
   Color tint(int rgb, double amount) => Color.alphaBlend(
       palette.seed.withValues(alpha: amount), Color(0xFF000000 | rgb));
-  return switch (t) {
+  final look = switch (t) {
     ReaderTheme.night => base.copyWith(
-        surface: tint(0x121212, 0.03),
-        surfaceContainerLowest: tint(0x0C0C0C, 0.02),
-        surfaceContainerLow: tint(0x191919, 0.05),
-        surfaceContainer: tint(0x1F1F1F, 0.07),
-        surfaceContainerHigh: tint(0x292929, 0.08),
-        surfaceContainerHighest: tint(0x343434, 0.09),
+        surface: tint(0x121110, 0.02),
+        onSurface: const Color(0xFFEDE8E0),
+        onSurfaceVariant: const Color(0xFFA9A398),
+        surfaceContainerLowest: tint(0x0C0B0A, 0.01),
+        surfaceContainerLow: tint(0x1A1917, 0.03),
+        surfaceContainer: tint(0x201F1D, 0.03),
+        surfaceContainerHigh: tint(0x2A2826, 0.04),
+        surfaceContainerHighest: tint(0x34322F, 0.04),
+        outlineVariant: const Color(0xFF34312D),
       ),
     ReaderTheme.sepia => base.copyWith(
         surface: const Color(0xFFF4EAD7),
@@ -60,8 +55,28 @@ ColorScheme schemeFor(ReaderTheme t, [AppPalette palette = AppPalette.blueberry]
         surfaceContainerHighest: const Color(0xFFDFD1B6),
         outlineVariant: const Color(0xFFD3C4A8),
       ),
-    _ => base,
+    _ => base.copyWith(
+        surface: const Color(0xFFFBFAF7),
+        onSurface: const Color(0xFF1E1C19),
+        onSurfaceVariant: const Color(0xFF6A645B),
+        surfaceContainerLowest: const Color(0xFFFFFFFF),
+        surfaceContainerLow: const Color(0xFFF5F3EE),
+        surfaceContainer: const Color(0xFFF0EDE7),
+        surfaceContainerHigh: const Color(0xFFEAE6DF),
+        surfaceContainerHighest: const Color(0xFFE3DFD7),
+        outlineVariant: const Color(0xFFE2DDD4),
+      ),
   };
+  // Folio: no tinted containers. Tonal buttons, chips and fills sit on the
+  // page in quiet neutrals; only the accent itself carries colour.
+  return look.copyWith(
+    primaryContainer: look.surfaceContainerHigh,
+    onPrimaryContainer: look.onSurface,
+    secondaryContainer: look.surfaceContainerHigh,
+    onSecondaryContainer: look.onSurface,
+    tertiaryContainer: look.surfaceContainerHigh,
+    onTertiaryContainer: look.onSurface,
+  );
 }
 
 /// Short names for the roles the whole app uses.
@@ -87,16 +102,31 @@ class TwoFoldColors {
 /// 4 dp grid.
 class Space {
   static const double xs = 4, s = 8, m = 12, l = 16, xl = 24, xxl = 32;
-  static const double cardRadius = 28;
+  static const double cardRadius = 16;
   static const double minTarget = 48;
 }
+
+/// Book-cloth colours (cover, lettering) for books without a cover picture.
+/// They stay the same in every theme, like real bindings on a shelf.
+const bookCloth = [
+  (Color(0xFF7A2E2A), Color(0xFFF4E7DA)),
+  (Color(0xFF2F4A3A), Color(0xFFE6EFE6)),
+  (Color(0xFF2B3A55), Color(0xFFE5EAF4)),
+  (Color(0xFF8A6A2F), Color(0xFFFBF1DC)),
+  (Color(0xFF4A3F5C), Color(0xFFEEE8F5)),
+  (Color(0xFF3B3A36), Color(0xFFEFEDE7)),
+];
+
+/// A book keeps the same cloth; the shelf gets some variety.
+(Color, Color) clothFor(String title) =>
+    bookCloth[title.codeUnits.fold(0, (a, b) => a + b) % bookCloth.length];
 
 const serifFont = 'Literata';
 const uiFont = 'Inter';
 
-/// Expressive spatial motion: quick, with a little overshoot.
-const springCurve = Cubic(0.34, 1.3, 0.64, 1);
-const springDuration = Duration(milliseconds: 280);
+/// Calm motion: quick to start, soft to land, never overshooting.
+const easeCurve = Curves.easeOutCubic;
+const easeDuration = Duration(milliseconds: 220);
 
 /// Gives widgets the tokens through `context.twofold`.
 class TwoFoldTokens extends ThemeExtension<TwoFoldTokens> {
@@ -117,13 +147,12 @@ extension TwoFoldContext on BuildContext {
   TwoFoldColors get twofold => Theme.of(this).extension<TwoFoldTokens>()!.colors;
 }
 
-/// Buttons square up as they are pressed.
-WidgetStateProperty<OutlinedBorder> _morphing(double rest) =>
-    WidgetStateProperty.resolveWith((states) => RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(
-            states.contains(WidgetState.pressed) ? rest * 0.4 : rest)));
+/// Folio's one control shape: a soft rectangle, like the corner of a book.
+const _controlShape = WidgetStatePropertyAll<OutlinedBorder>(
+  RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(12))),
+);
 
-ThemeData buildTheme(ReaderTheme t, [AppPalette palette = AppPalette.blueberry]) {
+ThemeData buildTheme(ReaderTheme t, [AppPalette palette = AppPalette.indigo]) {
   final s = schemeFor(t == ReaderTheme.system ? ReaderTheme.paper : t, palette);
   final c = TwoFoldColors(s);
 
@@ -143,7 +172,7 @@ ThemeData buildTheme(ReaderTheme t, [AppPalette palette = AppPalette.blueberry])
         color: c.text,
       );
 
-  final labelLarge = ui(14, w: FontWeight.w600);
+  final labelLarge = ui(13, w: FontWeight.w600);
   final base = ThemeData(
     useMaterial3: true,
     colorScheme: s,
@@ -152,46 +181,48 @@ ThemeData buildTheme(ReaderTheme t, [AppPalette palette = AppPalette.blueberry])
     scaffoldBackgroundColor: s.surface,
     canvasColor: s.surface,
     dividerColor: s.outlineVariant,
-    splashFactory: const BubbleSplashFactory(),
+    splashFactory: InkRipple.splashFactory,
   );
-  // Underline borders keep the floating label inside the filled shape.
-  const fieldRadius = BorderRadius.all(Radius.circular(16));
-  const field = UnderlineInputBorder(
-    borderRadius: fieldRadius,
-    borderSide: BorderSide.none,
-  );
+  // Outlined fields on the page colour: visible on any sheet or dialog.
+  const fieldRadius = BorderRadius.all(Radius.circular(10));
+  OutlineInputBorder field(Color c, [double w = 1]) => OutlineInputBorder(
+        borderRadius: fieldRadius,
+        borderSide: BorderSide(color: c, width: w),
+      );
 
   return base.copyWith(
     extensions: [TwoFoldTokens(c)],
     textTheme: base.textTheme.copyWith(
-      displaySmall: serif(36, height: 1.1),
-      headlineMedium: serif(28, height: 1.15),
-      titleLarge: serif(22, height: 1.2),
-      titleMedium: ui(16, w: FontWeight.w600),
-      titleSmall: ui(14, w: FontWeight.w600),
-      bodyLarge: ui(16),
-      bodyMedium: ui(14),
-      bodySmall: ui(12, color: c.muted),
+      displaySmall: serif(28, height: 1.12),
+      headlineMedium: serif(22, height: 1.2),
+      titleLarge: serif(19, height: 1.25),
+      titleMedium: serif(15, w: FontWeight.w600, height: 1.25),
+      titleSmall: ui(13, w: FontWeight.w600),
+      bodyLarge: ui(15),
+      bodyMedium: ui(13),
+      bodySmall: ui(11.5, color: c.muted),
       labelLarge: labelLarge,
-      labelMedium: ui(13, w: FontWeight.w500, color: c.muted).copyWith(
+      labelMedium: ui(12, w: FontWeight.w500, color: c.muted).copyWith(
         fontFeatures: const [FontFeature.tabularFigures()],
       ),
-      labelSmall: ui(12, w: FontWeight.w500),
+      labelSmall: ui(11, w: FontWeight.w500),
     ),
     filledButtonTheme: FilledButtonThemeData(
       style: ButtonStyle(
-        minimumSize: const WidgetStatePropertyAll(Size(Space.minTarget, 56)),
+        minimumSize: const WidgetStatePropertyAll(Size(Space.minTarget, 44)),
         padding: const WidgetStatePropertyAll(
-            EdgeInsets.symmetric(horizontal: Space.xl)),
-        textStyle: WidgetStatePropertyAll(labelLarge.copyWith(fontSize: 16)),
-        shape: _morphing(28),
+            EdgeInsets.symmetric(horizontal: Space.l)),
+        textStyle: WidgetStatePropertyAll(labelLarge.copyWith(fontSize: 14)),
+        shape: _controlShape,
       ),
     ),
     outlinedButtonTheme: OutlinedButtonThemeData(
       style: ButtonStyle(
-        minimumSize: const WidgetStatePropertyAll(Size(Space.minTarget, 52)),
+        foregroundColor: WidgetStatePropertyAll(s.onSurface),
+        side: WidgetStatePropertyAll(BorderSide(color: s.outline.withValues(alpha: 0.5))),
+        minimumSize: const WidgetStatePropertyAll(Size(Space.minTarget, 40)),
         textStyle: WidgetStatePropertyAll(labelLarge),
-        shape: _morphing(26),
+        shape: _controlShape,
       ),
     ),
     textButtonTheme: TextButtonThemeData(
@@ -199,75 +230,113 @@ ThemeData buildTheme(ReaderTheme t, [AppPalette palette = AppPalette.blueberry])
         minimumSize:
             const WidgetStatePropertyAll(Size(Space.minTarget, Space.minTarget)),
         textStyle: WidgetStatePropertyAll(labelLarge),
-        shape: _morphing(24),
+        shape: _controlShape,
       ),
     ),
     iconButtonTheme: IconButtonThemeData(
       style: ButtonStyle(
         minimumSize:
             const WidgetStatePropertyAll(Size(Space.minTarget, Space.minTarget)),
-        shape: _morphing(24),
+        shape: _controlShape,
       ),
     ),
     floatingActionButtonTheme: FloatingActionButtonThemeData(
-      backgroundColor: s.primaryContainer,
-      foregroundColor: s.onPrimaryContainer,
-      elevation: 2,
-      focusElevation: 2,
+      backgroundColor: s.onSurface,
+      foregroundColor: s.surface,
+      elevation: 1,
+      focusElevation: 1,
       hoverElevation: 2,
-      highlightElevation: 2,
-      extendedTextStyle: ui(16, w: FontWeight.w600),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      highlightElevation: 1,
+      extendedTextStyle: ui(14, w: FontWeight.w600),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      extendedSizeConstraints: const BoxConstraints.tightFor(height: 48),
+      extendedPadding: const EdgeInsets.symmetric(horizontal: Space.l),
     ),
+    searchBarTheme: SearchBarThemeData(
+      elevation: const WidgetStatePropertyAll(0),
+      backgroundColor: WidgetStatePropertyAll(s.surfaceContainer),
+      shape: const WidgetStatePropertyAll(
+        RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(12))),
+      ),
+      hintStyle: WidgetStatePropertyAll(ui(15, color: c.muted)),
+      textStyle: WidgetStatePropertyAll(ui(15)),
+    ),
+    chipTheme: ChipThemeData(
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(8),
+        side: BorderSide(color: s.outlineVariant),
+      ),
+      backgroundColor: s.surface,
+      selectedColor: s.onSurface,
+      showCheckmark: false,
+      labelStyle: ui(13, w: FontWeight.w500),
+      secondaryLabelStyle: ui(13, w: FontWeight.w600, color: s.surface),
+      padding: const EdgeInsets.symmetric(horizontal: Space.xs, vertical: 2),
+    ),
+    dividerTheme: DividerThemeData(color: s.outlineVariant, thickness: 1, space: 1),
     sliderTheme: SliderThemeData(
+      // The thin classic track, not the thick Expressive one.
       // ignore: deprecated_member_use
-      year2023: false,
+      year2023: true,
+      trackHeight: 3,
       activeTrackColor: s.primary,
-      inactiveTrackColor: s.secondaryContainer,
+      inactiveTrackColor: s.outlineVariant,
       thumbColor: s.primary,
     ),
     progressIndicatorTheme: ProgressIndicatorThemeData(
       // ignore: deprecated_member_use
-      year2023: false,
+      year2023: true,
       color: s.primary,
-      linearTrackColor: s.secondaryContainer,
-      circularTrackColor: s.secondaryContainer,
+      linearTrackColor: s.outlineVariant,
+      circularTrackColor: s.outlineVariant,
     ),
     switchTheme: SwitchThemeData(
-      thumbIcon: WidgetStateProperty.resolveWith((states) =>
-          states.contains(WidgetState.selected)
-              ? const Icon(Icons.check_rounded)
-              : null),
+      thumbColor: WidgetStateProperty.resolveWith((st) =>
+          st.contains(WidgetState.selected) ? s.surface : s.outline),
+      trackColor: WidgetStateProperty.resolveWith((st) =>
+          st.contains(WidgetState.selected) ? s.onSurface : s.surfaceContainerHighest),
+      trackOutlineColor: WidgetStateProperty.resolveWith((st) =>
+          st.contains(WidgetState.selected) ? s.onSurface : s.outline.withValues(alpha: 0.5)),
     ),
     segmentedButtonTheme: SegmentedButtonThemeData(
       style: ButtonStyle(
-        minimumSize: const WidgetStatePropertyAll(Size(0, Space.minTarget)),
+        minimumSize: const WidgetStatePropertyAll(Size(0, 40)),
         textStyle: WidgetStatePropertyAll(labelLarge),
+        shape: const WidgetStatePropertyAll(
+          RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(10))),
+        ),
+        side: WidgetStatePropertyAll(BorderSide(color: s.outline.withValues(alpha: 0.5))),
+        backgroundColor: WidgetStateProperty.resolveWith((st) =>
+            st.contains(WidgetState.selected) ? s.onSurface : Colors.transparent),
+        foregroundColor: WidgetStateProperty.resolveWith((st) =>
+            st.contains(WidgetState.selected) ? s.surface : s.onSurface),
       ),
     ),
     inputDecorationTheme: InputDecorationTheme(
       filled: true,
-      fillColor: s.surfaceContainerHigh,
-      labelStyle: ui(15, color: c.muted),
-      hintStyle: ui(16, color: c.muted),
-      border: field,
-      enabledBorder: field,
-      disabledBorder: field,
-      focusedBorder: UnderlineInputBorder(
-          borderRadius: fieldRadius,
-          borderSide: BorderSide(color: s.primary, width: 2)),
+      fillColor: s.surfaceContainerLowest,
+      labelStyle: ui(14, color: c.muted),
+      floatingLabelStyle: ui(13, w: FontWeight.w600, color: c.text),
+      hintStyle: ui(15, color: c.muted),
+      contentPadding: const EdgeInsets.symmetric(horizontal: Space.m, vertical: Space.m),
+      border: field(s.outline.withValues(alpha: 0.6)),
+      enabledBorder: field(s.outline.withValues(alpha: 0.6)),
+      disabledBorder: field(s.outlineVariant),
+      focusedBorder: field(s.onSurface, 1.5),
+      errorBorder: field(s.error),
+      focusedErrorBorder: field(s.error, 1.5),
     ),
     listTileTheme: ListTileThemeData(
       minVerticalPadding: Space.m,
       iconColor: s.onSurfaceVariant,
-      titleTextStyle: ui(16),
-      subtitleTextStyle: ui(13, color: c.muted),
+      titleTextStyle: ui(15),
+      subtitleTextStyle: ui(12.5, color: c.muted),
     ),
     dialogTheme: DialogThemeData(
-      backgroundColor: s.surfaceContainerHigh,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
-      titleTextStyle: serif(24, height: 1.2),
-      contentTextStyle: ui(14, color: c.muted),
+      backgroundColor: s.surfaceContainerLow,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      titleTextStyle: serif(20, height: 1.2),
+      contentTextStyle: ui(13.5, color: c.muted),
     ),
     snackBarTheme: SnackBarThemeData(
       behavior: SnackBarBehavior.floating,
@@ -277,21 +346,23 @@ ThemeData buildTheme(ReaderTheme t, [AppPalette palette = AppPalette.blueberry])
       backgroundColor: s.surfaceContainerLow,
       showDragHandle: true,
       shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(28))),
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
     ),
     appBarTheme: AppBarTheme(
       backgroundColor: s.surface,
       foregroundColor: s.onSurface,
       elevation: 0,
       scrolledUnderElevation: 0,
-      titleTextStyle: serif(22, height: 1.2),
+      titleTextStyle: serif(19, height: 1.2),
     ),
     cardTheme: CardThemeData(
-      color: s.surfaceContainer,
+      color: s.surfaceContainerLow,
       elevation: 0,
       margin: EdgeInsets.zero,
       shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(Space.cardRadius)),
+        borderRadius: BorderRadius.circular(Space.cardRadius),
+        side: BorderSide(color: s.outlineVariant),
+      ),
     ),
     textSelectionTheme: TextSelectionThemeData(
       cursorColor: s.primary,

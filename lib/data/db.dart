@@ -1,7 +1,7 @@
 import 'package:path/path.dart' as p;
 import 'package:sqflite/sqflite.dart';
 
-const _dbVersion = 3;
+const _dbVersion = 5;
 
 /// Opens the app database. Pass [path] to open elsewhere (tests use an in-memory db).
 Future<Database> openTwoFoldDb({String? path, DatabaseFactory? factory}) async {
@@ -18,6 +18,10 @@ Future<Database> openTwoFoldDb({String? path, DatabaseFactory? factory}) async {
           await db.execute('ALTER TABLE audio_tracks ADD COLUMN title TEXT');
         }
         if (from < 3) await _createMarks(db);
+        if (from < 4 && from >= 3) {
+          await db.execute('ALTER TABLE marks ADD COLUMN note TEXT');
+        }
+        if (from < 5) await _createDetails(db);
       },
     ),
   );
@@ -32,11 +36,33 @@ Future<void> _createMarks(Database db) => db.execute('''
       page_label TEXT NOT NULL,
       audio_ms   INTEGER,
       created_at INTEGER NOT NULL,
-      synced     INTEGER NOT NULL DEFAULT 0
+      synced     INTEGER NOT NULL DEFAULT 0,
+      note       TEXT
+    )''');
+
+/// What is known about a book beyond its file: where it came from and Open
+/// Library's facts. Kept so they can be read after the book is downloaded.
+Future<void> _createDetails(Database db) => db.execute('''
+    CREATE TABLE book_details (
+      book_id      TEXT PRIMARY KEY REFERENCES books(id) ON DELETE CASCADE,
+      source       TEXT,
+      source_id    TEXT,
+      source_url   TEXT,
+      summary      TEXT,
+      description  TEXT,
+      subjects     TEXT,
+      rating       REAL,
+      rating_count INTEGER NOT NULL DEFAULT 0,
+      want_to_read INTEGER NOT NULL DEFAULT 0,
+      first_year   INTEGER,
+      pages        INTEGER,
+      ol_work      TEXT,
+      updated_at   INTEGER NOT NULL
     )''');
 
 Future<void> _create(Database db, int version) async {
   await _createMarks(db);
+  await _createDetails(db);
   await db.execute('''
     CREATE TABLE books (
       id          TEXT PRIMARY KEY,

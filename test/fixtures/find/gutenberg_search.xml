@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom" xmlns:opds="http://opds-spec.org/2010/catalog" xmlns:dcterms="http://purl.org/dc/terms/" xmlns:opensearch="http://a9.com/-/spec/opensearch/1.1/" xmlns:relevance="http://a9.com/-/opensearch/extensions/relevance/1.0/">
+<id>http://www.gutenberg.org/ebooks/search.opds/?query=alice+wonderland</id>
+<updated>2026-11-10T08:39:46Z</updated>
+<title>Books: alice wonderland</title>
+<subtitle>Free eBooks since 1971.</subtitle>
+<author>
+<name>Project Gutenberg</name>
+<uri>https://www.gutenberg.org</uri>
+<email>webmaster@gutenberg.org</email>
+</author>
+<icon>https://www.gutenberg.org/gutenberg/favicon.ico</icon>
+<link rel="search" type="application/opensearchdescription+xml" title="Project Gutenberg Catalog Search" href="https://www.gutenberg.org/catalog/osd-books.xml"/>
+<link rel="self" title="This Page" type="application/atom+xml;profile=opds-catalog" href="/ebooks/search.opds/?query=alice+wonderland"/>
+<link rel="alternate" type="text/html" title="HTML Page" href="/ebooks/search/?query=alice+wonderland"/>
+<link rel="start" title="Start Page" type="application/atom+xml;profile=opds-catalog" href="/ebooks.opds/"/>
+<opensearch:itemsPerPage>25</opensearch:itemsPerPage>
+<opensearch:startIndex>1</opensearch:startIndex>
+<entry>
+<updated>2026-11-10T08:39:46Z</updated>
+<id>https://www.gutenberg.org/ebooks/subjects/search.opds/?query=alice+wonderland</id>
+<title>Subjects</title>
+<content type="text">2 subject headings match your search.</content>
+<link type="application/atom+xml;profile=opds-catalog" rel="subsection" href="/ebooks/subjects/search.opds/?query=alice+wonderland"/>
+<link type="image/png" rel="http://opds-spec.org/image/thumbnail" href="data:image/png;base64,"/>
+</entry>
+<entry>
+<updated>2026-11-10T08:39:46Z</updated>
+<id>https://www.gutenberg.org/ebooks/11.opds</id>
+<title>Alice's Adventures in Wonderland</title>
+<content type="text">Lewis Carroll</content>
+<link type="application/atom+xml;profile=opds-catalog" rel="subsection" href="/ebooks/11.opds"/>
+<link type="image/png" rel="http://opds-spec.org/image/thumbnail" href="data:image/png;base64,"/>
+</entry>
+<entry>
+<updated>2026-11-10T08:39:46Z</updated>
+<id>https://www.gutenberg.org/ebooks/19033.opds</id>
+<title>Alice's Adventures in Wonderland</title>
+<content type="text">Lewis Carroll</content>
+<link type="application/atom+xml;profile=opds-catalog" rel="subsection" href="/ebooks/19033.opds"/>
+<link type="image/png" rel="http://opds-spec.org/image/thumbnail" href="data:image/png;base64,"/>
+</entry>
+<entry>
+<updated>2026-11-10T08:39:46Z</updated>
+<id>https://www.gutenberg.org/ebooks/28885.opds</id>
+<title>Alice's Adventures in Wonderland</title>
+<content type="text">Lewis Carroll</content>
+<link type="application/atom+xml;profile=opds-catalog" rel="subsection" href="/ebooks/28885.opds"/>
+<link type="image/png" rel="http://opds-spec.org/image/thumbnail" href="data:image/png;base64,"/>
+</entry>
+<entry>
+<updated>2026-11-10T08:39:46Z</updated>
+<id>https://www.gutenberg.org/ebooks/114.opds</id>
+<title>The Tenniel Illustrations for Carroll's Alice in Wonderland</title>
+<content type="text">John Tenniel</content>
+<link type="application/atom+xml;profile=opds-catalog" rel="subsection" href="/ebooks/114.opds"/>
+<link type="image/png" rel="http://opds-spec.org/image/thumbnail" href="data:image/png;base64,"/>
+</entry>
+</feed>

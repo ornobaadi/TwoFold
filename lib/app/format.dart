@@ -8,3 +8,21 @@ String formatTime(Duration d) {
   if (h > 0) return '$h:${m.toString().padLeft(2, '0')}:$ss';
   return '$m:$ss';
 }
+
+const _months = [
+  'Jan',
+  'Feb',
+  'Mar',
+  'Apr',
+  'May',
+  'Jun',
+  'Jul',
+  'Aug',
+  'Sep',
+  'Oct',
+  'Nov',
+  'Dec',
+];
+
+/// "3 Nov 2026": the same in every country, unlike 3/11/2026.
+String formatDate(DateTime d) => '${d.day} ${_months[d.month - 1]} ${d.year}';

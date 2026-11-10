@@ -17,7 +17,7 @@ class AppSettings {
     this.font = ReadingFont.serif,
     this.keepScreenOn = true,
     this.sort = LibrarySort.recent,
-    this.palette = AppPalette.blueberry,
+    this.palette = AppPalette.indigo,
   });
 
   final ReaderTheme theme;

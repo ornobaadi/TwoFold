@@ -4,13 +4,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../app/bubbly.dart';
+import '../../app/press.dart';
 import '../../app/format.dart';
 import '../../app/theme.dart';
 import '../../audio/audio_handler.dart';
 import '../../audio/chapters.dart';
 import '../../audio/player_controller.dart';
-import '../../audio/scrub_guard.dart';
 
 /// The hero control. Round when paused, squared off while playing, so its
 /// state can be read at a glance.
@@ -28,21 +27,16 @@ class PlayButton extends ConsumerWidget {
     return Semantics(
       button: true,
       label: playing ? 'Pause' : 'Play',
-      child: Bubbly(
+      child: Pressable(
         squish: 0.86,
         child: GestureDetector(
           onTap: playing ? handler.pause : handler.play,
           child: AnimatedContainer(
-            duration: springDuration,
-            curve: springCurve,
-            width: size * 1.3,
+            duration: easeDuration,
+            curve: easeCurve,
+            width: size,
             height: size,
-            decoration: BoxDecoration(
-              color: s.primary,
-              borderRadius: BorderRadius.circular(
-                playing ? size * 0.3 : size / 2,
-              ),
-            ),
+            decoration: BoxDecoration(color: s.primary, shape: BoxShape.circle),
             child: Icon(
               playing ? Icons.pause_rounded : Icons.play_arrow_rounded,
               size: size * 0.56,
@@ -70,15 +64,17 @@ class SkipButton extends ConsumerWidget {
     final icon = Icon(
       Icons.replay_rounded,
       size: size * 0.72,
-      color: s.onSecondaryContainer,
+      color: s.onSurface,
     );
     return Semantics(
       button: true,
       label: '${forward ? 'Forward' : 'Back'} $seconds seconds',
-      child: Bubbly(
+      child: Pressable(
         child: Material(
-          color: s.secondaryContainer,
-          borderRadius: BorderRadius.circular(size * 0.36),
+          color: Colors.transparent,
+          shape: CircleBorder(
+            side: BorderSide(color: s.outlineVariant, width: 1.5),
+          ),
           clipBehavior: Clip.antiAlias,
           child: InkWell(
             onTap: () {
@@ -104,7 +100,7 @@ class SkipButton extends ConsumerWidget {
                         fontFamily: uiFont,
                         fontSize: size * 0.2,
                         fontWeight: FontWeight.w600,
-                        color: s.onSecondaryContainer,
+                        color: s.onSurface,
                       ),
                     ),
                   ),
@@ -226,7 +222,6 @@ class Scrubber extends ConsumerStatefulWidget {
 }
 
 class _ScrubberState extends ConsumerState<Scrubber> {
-  final _guard = ScrubGuard();
   double? _dragging;
 
   // After a seek the thumb holds at the target until playback reports it, so
@@ -234,43 +229,33 @@ class _ScrubberState extends ConsumerState<Scrubber> {
   double? _settling;
   Timer? _settleTimer;
 
-  Duration? _refused;
-  Timer? _refusedTimer;
+  /// Where the audio was before a long jump, offered as a way back for a
+  /// few seconds. Seeks always happen straight away.
+  Duration? _before;
+  Timer? _beforeTimer;
 
   @override
   void dispose() {
     _settleTimer?.cancel();
-    _refusedTimer?.cancel();
+    _beforeTimer?.cancel();
     super.dispose();
   }
 
-  Future<void> _finish(double value) async {
+  Future<void> _seek(Duration target, {bool offerBack = true}) async {
     final handler = ref.read(audioHandlerProvider);
-    final target = Duration(milliseconds: value.round());
-    final allowed = _guard.allow(
-      handler.absolutePosition,
-      target,
-      handler.chapters.value,
-      DateTime.now(),
-    );
-    _refusedTimer?.cancel();
-    if (!allowed) {
-      HapticFeedback.selectionClick();
-      setState(() {
-        _dragging = null;
-        _refused = target;
-      });
-      _refusedTimer = Timer(_guard.window, () {
-        _guard.reset();
-        if (mounted) setState(() => _refused = null);
-      });
-      return;
-    }
+    final from = handler.absolutePosition;
+    _beforeTimer?.cancel();
+    final far = (target - from).abs() >= jumpBackThreshold;
     setState(() {
       _dragging = null;
-      _refused = null;
-      _settling = value;
+      _settling = target.inMilliseconds.toDouble();
+      _before = offerBack && far ? from : null;
     });
+    if (_before != null) {
+      _beforeTimer = Timer(const Duration(seconds: 8), () {
+        if (mounted) setState(() => _before = null);
+      });
+    }
     _settleTimer?.cancel();
     _settleTimer = Timer(const Duration(seconds: 2), () {
       if (mounted) setState(() => _settling = null);
@@ -282,7 +267,6 @@ class _ScrubberState extends ConsumerState<Scrubber> {
   Widget build(BuildContext context) {
     final handler = ref.watch(audioHandlerProvider);
     final theme = Theme.of(context);
-    final c = context.twofold;
     // Cuts read as gaps in the track, on whatever surface it sits on.
     final cut = widget.onSurface ?? theme.colorScheme.surface;
     final total = ref.watch(mediaItemProvider).value?.duration ?? Duration.zero;
@@ -297,7 +281,13 @@ class _ScrubberState extends ConsumerState<Scrubber> {
       _settleTimer?.cancel();
     }
     final ms = _dragging ?? _settling ?? position.inMilliseconds.toDouble();
-    final refused = _refused;
+    final before = _before;
+    final dragging = _dragging;
+    String? chapterAt(double v) {
+      final list = handler.chapters.value;
+      final i = chapterIndexAt(list, Duration(milliseconds: v.round()));
+      return i < 0 ? null : list[i].title;
+    }
 
     return Column(
       mainAxisSize: MainAxisSize.min,
@@ -309,7 +299,7 @@ class _ScrubberState extends ConsumerState<Scrubber> {
             builder: (context, chapters, _) => SliderTheme(
               data: SliderTheme.of(context).copyWith(
                 padding: EdgeInsets.zero,
-                trackHeight: 14,
+                trackHeight: 4,
                 thumbSize: const WidgetStatePropertyAll(Size(4, 40)),
                 trackShape: _ChapterTrack(chapters, total, cut),
               ),
@@ -319,34 +309,75 @@ class _ScrubberState extends ConsumerState<Scrubber> {
                 semanticFormatterCallback: (v) =>
                     formatTime(Duration(milliseconds: v.round())),
                 onChanged: (v) => setState(() => _dragging = v),
-                onChangeEnd: _finish,
+                onChangeEnd: (v) => _seek(Duration(milliseconds: v.round())),
               ),
             ),
           ),
         ),
-        Row(
-          children: [
-            Text(
-              formatTime(Duration(milliseconds: ms.round())),
-              style: theme.textTheme.labelMedium,
-            ),
-            Expanded(
-              child: refused == null
-                  ? const SizedBox.shrink()
-                  : Text(
-                      'Tap again to jump to ${formatTime(refused)}',
-                      textAlign: TextAlign.center,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: theme.textTheme.labelMedium?.copyWith(
-                        color: c.accent,
-                      ),
-                    ),
-            ),
-            Text(formatTime(total), style: theme.textTheme.labelMedium),
-          ],
+        SizedBox(
+          // Fixed height, so the way-back button never moves the controls.
+          height: 36,
+          child: Row(
+            children: [
+              Text(
+                formatTime(Duration(milliseconds: ms.round())),
+                style: theme.textTheme.labelMedium?.copyWith(
+                  fontWeight: dragging != null ? FontWeight.w700 : null,
+                ),
+              ),
+              Expanded(
+                child: Center(
+                  child: dragging != null
+                      // While dragging: which chapter the thumb is in.
+                      ? Text(
+                          chapterAt(dragging) ?? '',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: theme.textTheme.labelMedium,
+                        )
+                      : before != null
+                      ? JumpBackChip(
+                          label: 'Back to ${formatTime(before)}',
+                          onTap: () => _seek(before, offerBack: false),
+                        )
+                      : const SizedBox.shrink(),
+                ),
+              ),
+              Text(formatTime(total), style: theme.textTheme.labelMedium),
+            ],
+          ),
         ),
       ],
+    );
+  }
+}
+
+/// Jumps shorter than this don't offer a way back.
+const jumpBackThreshold = Duration(seconds: 30);
+
+/// A small "Back to …" button shown after a long jump.
+class JumpBackChip extends StatelessWidget {
+  const JumpBackChip({super.key, required this.label, required this.onTap});
+
+  final String label;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return TextButton.icon(
+      onPressed: onTap,
+      style: TextButton.styleFrom(
+        minimumSize: const Size(0, 36),
+        padding: const EdgeInsets.symmetric(horizontal: Space.m),
+        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+        foregroundColor: theme.colorScheme.onSurface,
+        textStyle: theme.textTheme.labelMedium?.copyWith(
+          fontWeight: FontWeight.w700,
+        ),
+      ),
+      icon: const Icon(Icons.undo_rounded, size: 16),
+      label: Text(label, maxLines: 1, overflow: TextOverflow.ellipsis),
     );
   }
 }
@@ -649,9 +680,9 @@ class PlayerBar extends ConsumerWidget {
                   'Speed',
                   SizedBox(height: 36, child: SpeedButton()),
                 ),
-                const SkipButton(forward: false, size: 52),
-                const PlayButton(size: 60),
-                const SkipButton(forward: true, size: 52),
+                const SkipButton(forward: false, size: 44),
+                const PlayButton(size: 52),
+                const SkipButton(forward: true, size: 44),
                 _Captioned(
                   'Sleep',
                   SizedBox(

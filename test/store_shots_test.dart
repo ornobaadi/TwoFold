@@ -14,7 +14,14 @@ import 'package:twofold/audio/player_controller.dart';
 import 'package:twofold/data/book_repo.dart';
 import 'package:twofold/data/db.dart';
 import 'package:twofold/data/models.dart';
-import 'package:twofold/features/library/library_screen.dart';
+import 'package:twofold/app/home_shell.dart';
+import 'package:twofold/features/find/providers.dart';
+import 'package:twofold/features/library/book_details_screen.dart';
+import 'package:twofold/find/book_info.dart';
+import 'package:twofold/find/book_source.dart';
+import 'package:twofold/find/cover_source.dart';
+import 'package:twofold/find/find_service.dart';
+import 'package:twofold/find/web.dart';
 import 'package:twofold/features/listen/listen_screen.dart';
 import 'package:twofold/features/reader/reader_screen.dart';
 import 'package:twofold/features/settings/settings_screen.dart';
@@ -48,7 +55,7 @@ void main() {
         author: author,
         format: 'epub',
         filePath: 'test/fixtures/alice.epub',
-        addedAt: 1,
+        addedAt: 1793000000000,
         lastOpened: opened);
     final alice = book('alice', 'Alice in Wonderland', 'Lewis Carroll', 9);
     await tester.runAsync(() async {
@@ -91,6 +98,28 @@ void main() {
         title: 'Alice in Wonderland',
         duration: const Duration(hours: 3, minutes: 5)));
 
+    final findService = FindService(
+        web: Web(),
+        sources: [_ShotSource()],
+        info: _ShotInfo(),
+        covers: CoverService(Web()));
+    await tester.runAsync(() => repo.saveDetails(BookDetails(
+          bookId: 'pride',
+          source: 'Project Gutenberg',
+          description:
+              'Elizabeth Bennet, the second of five sisters, meets the proud Mr Darcy. '
+              'First impressions, family pressure and money shape a story about '
+              'judging too quickly and changing your mind.',
+          subjects: const ['Courtship', 'Sisters', 'England', 'Classics'],
+          rating: 4.2,
+          ratingCount: 416,
+          wantToRead: 6813,
+          firstYear: 1813,
+          pages: 351,
+          olWork: '/works/OL66554W',
+          updatedAt: 1,
+        )));
+
     Future<void> wait([int n = 15]) async {
       for (var i = 0; i < n; i++) {
         await tester.runAsync(
@@ -107,6 +136,7 @@ void main() {
           audioHandlerProvider.overrideWithValue(handler),
           initialSettingsProvider.overrideWithValue(
               AppSettings(theme: theme, palette: palette, hintShown: true)),
+          findServiceProvider.overrideWithValue(findService),
         ],
         child: MaterialApp(
           debugShowCheckedModeBanner: false,
@@ -124,10 +154,17 @@ void main() {
       }
     }
 
-    await open(const LibraryScreen(), ReaderTheme.paper, AppPalette.blueberry);
+    await open(const HomeShell(), ReaderTheme.paper, AppPalette.indigo);
     await shot('library');
 
-    await open(ReaderScreen(book: alice), ReaderTheme.paper, AppPalette.blueberry);
+    await open(const HomeShell(initialTab: 1), ReaderTheme.paper, AppPalette.indigo);
+    await shot('find');
+
+    await open(const BookDetailsScreen(bookId: 'pride'), ReaderTheme.sepia,
+        AppPalette.indigo);
+    await shot('details');
+
+    await open(ReaderScreen(book: alice), ReaderTheme.paper, AppPalette.indigo);
     await wait(25);
     await shot('reader');
 
@@ -135,10 +172,10 @@ void main() {
     await tester.pump(const Duration(milliseconds: 500));
     await wait(5);
     await shot('places');
-    await open(ListenScreen(book: alice), ReaderTheme.night, AppPalette.rose);
+    await open(ListenScreen(book: alice), ReaderTheme.night, AppPalette.clay);
     await shot('listen');
 
-    await open(const SettingsScreen(), ReaderTheme.night, AppPalette.lagoon);
+    await open(const SettingsScreen(), ReaderTheme.night, AppPalette.forest);
     await shot('colours');
 
     await tester.pumpWidget(const SizedBox());
@@ -185,3 +222,37 @@ Future<void> _loadFonts(WidgetTester tester) => tester.runAsync(() async {
       await load('MaterialIcons',
           '${sdk.path}/cache/artifacts/material_fonts/MaterialIcons-Regular.otf');
     });
+
+/// A stand-in library with public domain lists, so no request leaves the test.
+class _ShotSource extends BookSource {
+  @override
+  String get id => 'gutenberg';
+  @override
+  String get name => 'Project Gutenberg';
+  @override
+  String get blurb => 'Over 75,000 free ebooks, mostly older than 1930.';
+
+  @override
+  Future<List<Shelf>> shelves() async => [
+        for (final t in ['Popular', 'Latest', 'Random'])
+          Shelf(id: t, title: t, url: Uri.parse('https://example.org/$t')),
+      ];
+
+  @override
+  Future<FoundPage> browse(Shelf shelf, {int page = 0}) async =>
+      const FoundPage([], hasMore: false);
+
+  @override
+  Future<FoundPage> search(String query, {int page = 0}) async =>
+      const FoundPage([], hasMore: false);
+
+  @override
+  Future<List<DownloadTarget>> targets(FoundBook book) async => const [];
+}
+
+class _ShotInfo extends BookInfoService {
+  _ShotInfo() : super(Web());
+
+  @override
+  Future<BookInfo?> lookUp(FoundBook book) async => null;
+}

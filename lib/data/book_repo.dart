@@ -162,6 +162,18 @@ class BookRepo {
     );
   }
 
+  // --- book details ---
+
+  Future<BookDetails?> detailsFor(String bookId) async {
+    final rows = await _db.query('book_details',
+        where: 'book_id = ?', whereArgs: [bookId], limit: 1);
+    return rows.isEmpty ? null : BookDetails.fromMap(rows.first);
+  }
+
+  Future<void> saveDetails(BookDetails details) => _db.insert(
+      'book_details', details.toMap(),
+      conflictAlgorithm: ConflictAlgorithm.replace);
+
   // --- saved places ---
 
   Future<List<PlaceMark>> marksFor(String bookId) async {
@@ -171,6 +183,10 @@ class BookRepo {
   }
 
   Future<void> addMark(PlaceMark mark) => _db.insert('marks', mark.toMap());
+
+  Future<void> renameMark(String id, String? note) => _db.update(
+      'marks', {'note': (note == null || note.trim().isEmpty) ? null : note.trim()},
+      where: 'id = ?', whereArgs: [id]);
 
   Future<void> deleteMark(String id) =>
       _db.delete('marks', where: 'id = ?', whereArgs: [id]);

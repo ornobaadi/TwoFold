@@ -277,8 +277,9 @@ class _Walker {
     for (final child in node.children) {
       if (child is XmlText || child is XmlCDATA) {
         final text = child.value!.replaceAll(RegExp(r'\s+'), ' ');
-        if (text.isNotEmpty)
+        if (text.isNotEmpty) {
           _runs.add(TextRun(text, bold: bold, italic: italic));
+        }
       } else if (child is XmlElement) {
         final tag = child.name.local.toLowerCase();
         if (_skipTags.contains(tag)) continue;

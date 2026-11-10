@@ -1,6 +1,6 @@
 # Architecture
 
-Keep it small. Few packages, one database, no network.
+Keep it small. Few packages, one database, and the network only for Find free books.
 
 ## Stack
 
@@ -77,7 +77,11 @@ CREATE TABLE progress (
 );
 ```
 
-Settings (skip length, theme, font size) live in one `settings` key/value table.
+Saved places live in `marks` (DB v3; v4 adds `note`, the user's name for a place): book, location, percent, page label, audio position, time, and `synced` (left from the removed page/audio sync; such rows are hidden).
+
+`book_details` (DB v5) keeps, per book, where it came from (source name, id, page) and Open Library's rating, counts, first year, pages, description and subjects (JSON). Written after a Find download and when the user taps Look up details; removed with the book.
+
+Settings (skip length, theme, font size, recent searches) live in one `settings` key/value table.
 
 ## Audio flow
 
@@ -125,4 +129,4 @@ Writes are a single `INSERT OR REPLACE`, so they're cheap. Because of trigger 1,
 
 - `FOREGROUND_SERVICE`, `FOREGROUND_SERVICE_MEDIA_PLAYBACK`, `WAKE_LOCK`, `POST_NOTIFICATIONS`.
 - No storage permission: the system file picker gives temporary access and the files get copied.
-- No internet permission.
+- `INTERNET`, used only by Find free books (`lib/find/`): search, browse and download from Gutenberg, the Internet Archive, Wikisource and user-added OPDS catalogs (`find/opds_source.dart`), plus book details and ratings from Open Library (`find/book_info.dart`), https only, to a fixed list of hosts. Nothing else in the app opens a connection.

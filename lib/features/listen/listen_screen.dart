@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../app/bubbly.dart';
+import '../../app/press.dart';
 import '../../app/router.dart';
 import '../../app/theme.dart';
 import '../../audio/audio_handler.dart';
@@ -40,7 +40,7 @@ class ListenScreen extends ConsumerWidget {
                       onPressed: () => Navigator.of(context).pop(),
                       icon: const Icon(
                         Icons.keyboard_arrow_down_rounded,
-                        size: 32,
+                        size: 28,
                       ),
                     ),
                     IconButton(
@@ -54,7 +54,12 @@ class ListenScreen extends ConsumerWidget {
               Expanded(
                 child: Padding(
                   padding: const EdgeInsets.symmetric(vertical: Space.m),
-                  child: Center(child: BookCover(book: book, titleSize: 20)),
+                  child: Center(
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 220),
+                      child: BookCover(book: book, titleSize: 15),
+                    ),
+                  ),
                 ),
               ),
               Text(
@@ -78,9 +83,9 @@ class ListenScreen extends ConsumerWidget {
                       onPressed: handler.previousChapter,
                       icon: const Icon(Icons.skip_previous_rounded),
                     ),
-                  SkipButton(forward: false, size: hasChapters ? 52 : 60),
-                  PlayButton(size: hasChapters ? 64 : 76),
-                  SkipButton(forward: true, size: hasChapters ? 52 : 60),
+                  SkipButton(forward: false, size: hasChapters ? 44 : 48),
+                  PlayButton(size: hasChapters ? 56 : 64),
+                  SkipButton(forward: true, size: hasChapters ? 44 : 48),
                   if (hasChapters)
                     IconButton(
                       tooltip: 'Next chapter',
@@ -158,15 +163,15 @@ class _Action extends StatelessWidget {
   Widget build(BuildContext context) {
     final s = Theme.of(context).colorScheme;
     final fg = active ? s.onPrimary : s.onSurface;
-    return Bubbly(
+    return Pressable(
       child: Material(
-        color: active ? s.primary : s.surfaceContainerHigh,
-        borderRadius: BorderRadius.circular(Space.xl),
+        color: active ? s.primary : s.surfaceContainer,
+        borderRadius: BorderRadius.circular(12),
         clipBehavior: Clip.antiAlias,
         child: InkWell(
           onTap: onTap,
           child: SizedBox(
-            height: 64,
+            height: 52,
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
