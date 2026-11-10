@@ -133,12 +133,9 @@ class SettingsScreen extends ConsumerWidget {
                   applicationVersion: appVersion,
                 ),
               ),
-              const ListTile(
-                title: Text('Version'),
-                trailing: Text(appVersion),
-              ),
             ],
           ),
+          const MadeBy(),
         ],
       ),
     );
@@ -219,4 +216,68 @@ class _Group extends StatelessWidget {
           ],
         ),
       );
+}
+
+/// The sign-off at the end of Settings, the same as in the author's other
+/// apps: who made it, the version, and what the app does and doesn't do.
+class MadeBy extends StatelessWidget {
+  const MadeBy({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final ink = theme.colorScheme.onSurface;
+    final muted = theme.colorScheme.onSurfaceVariant;
+    TextStyle? caps(Color c) => theme.textTheme.labelMedium?.copyWith(
+      color: c,
+      letterSpacing: 3,
+      fontWeight: FontWeight.w500,
+      height: 2,
+    );
+    return Semantics(
+      container: true,
+      label: 'Handcrafted by Ornob Aadi. TwoFold version $appVersion. '
+          'No account, no ads, no tracking. Online only when you ask.',
+      child: ExcludeSemantics(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(
+            Space.s,
+            Space.xxl,
+            Space.s,
+            Space.l,
+          ),
+          child: Column(
+            children: [
+              Text('HANDCRAFTED BY', style: caps(muted)),
+              const SizedBox(height: Space.m),
+              // White ink on transparent, tinted to the page's text colour.
+              Image.asset(
+                'assets/brand/signature.png',
+                height: 64,
+                color: ink,
+                colorBlendMode: BlendMode.srcIn,
+                filterQuality: FilterQuality.medium,
+              ),
+              const SizedBox(height: Space.l),
+              // Shrinks on narrow phones instead of breaking the line.
+              FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Text('TWOFOLD  •  VERSION $appVersion', style: caps(muted)),
+              ),
+              // Shrinks on narrow phones instead of breaking the line.
+              FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Text('NO ACCOUNT  •  NO ADS  •  NO TRACKING', style: caps(muted)),
+              ),
+              // Shrinks on narrow phones instead of breaking the line.
+              FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Text('ONLINE ONLY WHEN YOU ASK', style: caps(muted)),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 }

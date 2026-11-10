@@ -47,8 +47,11 @@ One free public domain story with audio is included, so you can try it the momen
 | Slot | File |
 |---|---|
 | App icon, 512 x 512 | `docs/logo/twofold-icon-512.png` |
-| Feature graphic, 1024 x 500 | `docs/store/feature-graphic.png` |
-| Phone screenshots, 1080 x 2160 | `docs/store/screenshot-1...7.png` (home, reader, places, listen, find, about, colours) |
+| Feature graphic, 1024 x 500 | `docs/store/mockups/feature-graphic.png` |
+| Phone screenshots, 1440 x 2560 (9:16), in that order | `docs/store/mockups/screenshot-1...7.png`: together, reader, player, free classics, about the book, places, night |
+| Plain screenshots (spare) | `docs/store/screenshot-1...7.png` |
+
+Mockups are made by `python tool/store_mockups.py` from `build/mock` (`SHOTS=1 SHOT_SIZE=1220x2712 flutter test test/store_shots_test.dart --update-goldens`, then copy `build/shots/*.png` to `build/mock/`) and phone captures in `assets/screenshots`. Book covers in the shots are public domain first editions in `docs/store/covers` (sources and licences in its `CREDITS.md`). Store images show only public domain or openly licensed books: Play rejects other people's covers and titles, and they would suggest TwoFold sells them.
 
 ## Search terms the listing targets
 
@@ -60,6 +63,17 @@ ebook reader, audiobook player, epub reader, pdf reader, read and listen, m4b pl
 - **Contact email:** ornobaadi.dev@gmail.com
 - **Price:** Free. A paid app can't later be made free in reverse, and free can't later become paid, so decide before publishing.
 
-## Release notes for 0.2.0
+## Release notes for 0.2.0 (build 2)
 
-New look: paper and ink, a dock at the bottom and what's playing above it. Find free books from Project Gutenberg, the Internet Archive, Wikisource and Unglue.it, with real covers and details from Open Library. Choose any book's cover. Named places, recent searches, and a quick way back after a long jump in the audio or the book.
+Paste into **Release > What's new in this release** (500 characters max; this is 451):
+
+```
+• Find free books: Project Gutenberg, Internet Archive, Wikisource and Unglue.it
+• Real covers: pick from other editions, or use a photo
+• About this book: ratings, description and subjects
+• New paper-and-ink look, with Shelf, Find and Settings in a bottom bar
+• What's playing stays one tap away
+• Scrub freely: a "Back to" button undoes a long jump
+• Name your saved places; recent searches in books
+• Smaller app: one sample story instead of three
+```

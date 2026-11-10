@@ -35,7 +35,12 @@ void main() {
     await _loadFonts(tester);
     // Real shadows, not the test renderer's outlines.
     debugDisableShadows = false;
-    tester.view.physicalSize = const Size(1080, 2160);
+    // SHOT_SIZE=1220x2712 renders at a real phone's size (for mockups).
+    final size = (Platform.environment['SHOT_SIZE'] ?? '1080x2160')
+        .split('x')
+        .map(double.parse)
+        .toList();
+    tester.view.physicalSize = Size(size[0], size[1]);
     tester.view.devicePixelRatio = 3;
     addTearDown(tester.view.reset);
     final db = (await tester.runAsync(() =>
@@ -45,9 +50,10 @@ void main() {
       ('alice', 'Alice in Wonderland', 'Lewis Carroll', 9),
       ('pride', 'Pride and Prejudice', 'Jane Austen', 8),
       ('dracula', 'Dracula', 'Bram Stoker', 7),
-      ('moby', 'Moby-Dick', 'Herman Melville', 6),
-      ('frank', 'Frankenstein', 'Mary Shelley', 5),
-      ('holmes', 'Sherlock Holmes', 'Arthur Conan Doyle', 4),
+      ('oz', 'The Wonderful Wizard of Oz', 'L. Frank Baum', 6),
+      ('gatsby', 'The Great Gatsby', 'F. Scott Fitzgerald', 5),
+      ('frank', 'Frankenstein', 'Mary Shelley', 4),
+      ('holmes', 'The Adventures of Sherlock Holmes', 'Arthur Conan Doyle', 3),
     ];
     Book book(String id, String title, String author, int opened) => Book(
         id: id,
@@ -55,6 +61,8 @@ void main() {
         author: author,
         format: 'epub',
         filePath: 'test/fixtures/alice.epub',
+        // First-edition covers, public domain (docs/store/covers/CREDITS.md).
+        coverPath: 'docs/store/covers/$id.jpg',
         addedAt: 1793000000000,
         lastOpened: opened);
     final alice = book('alice', 'Alice in Wonderland', 'Lewis Carroll', 9);
@@ -156,6 +164,9 @@ void main() {
 
     await open(const HomeShell(), ReaderTheme.paper, AppPalette.indigo);
     await shot('library');
+
+    await open(const HomeShell(), ReaderTheme.night, AppPalette.clay);
+    await shot('home_night');
 
     await open(const HomeShell(initialTab: 1), ReaderTheme.paper, AppPalette.indigo);
     await shot('find');

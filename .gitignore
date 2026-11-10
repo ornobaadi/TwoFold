@@ -70,3 +70,6 @@ GoogleService-Info.plist
 # Local AI tooling (large, third-party)
 .agents/
 .claude/
+
+# Phone captures used for store art; they show copyrighted covers
+assets/screenshots/

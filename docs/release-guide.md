@@ -32,7 +32,7 @@ flutter clean
 flutter build appbundle --release
 ```
 
-Output: `build/app/outputs/bundle/release/app-release.aab`. Every later upload needs a higher number after the `+` in `pubspec.yaml` (`0.2.0+3`), and update `appVersion` in `settings_screen.dart` when the first part changes.
+Output: `build/app/outputs/bundle/release/app-release.aab`. Every later upload needs a higher number after the `+` in `pubspec.yaml` (`0.2.0+2`), and update `appVersion` in `settings_screen.dart` when the first part changes.
 
 ## 4. Host the privacy policy
 
