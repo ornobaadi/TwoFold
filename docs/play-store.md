@@ -63,7 +63,7 @@ ebook reader, audiobook player, epub reader, pdf reader, read and listen, m4b pl
 - **Contact email:** ornobaadi.dev@gmail.com
 - **Price:** Free. A paid app can't later be made free in reverse, and free can't later become paid, so decide before publishing.
 
-## Release notes for 0.2.0 (build 3)
+## Release notes for 0.2.0 (build 4)
 
 Paste into **Release > What's new in this release** (500 characters max; this is 451):
 
