@@ -596,8 +596,8 @@ class _Featured extends ConsumerWidget {
             ),
             const SizedBox(width: Space.l),
             Expanded(
-              child: SizedBox(
-                height: 198,
+              child: Padding(
+                padding: const EdgeInsets.only(top: Space.xs),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -605,9 +605,11 @@ class _Featured extends ConsumerWidget {
                       entry.book.title,
                       maxLines: 4,
                       overflow: TextOverflow.ellipsis,
-                      style: theme.textTheme.headlineMedium?.copyWith(
+                      style: theme.textTheme.titleLarge?.copyWith(
+                        fontFamily: serifFont,
                         fontWeight: FontWeight.w700,
-                        height: 1.12,
+                        fontSize: 22,
+                        height: 1.15,
                       ),
                     ),
                     if (entry.book.author != null) ...[
@@ -619,12 +621,17 @@ class _Featured extends ConsumerWidget {
                         style: muted,
                       ),
                     ],
-                    const Spacer(),
-                    Text(
-                      started ? '${(percent * 100).round()}% read' : 'Not opened yet',
-                      style: theme.textTheme.titleSmall,
+                    const SizedBox(height: Space.m),
+                    Container(width: 28, height: 1.5, color: s.outlineVariant),
+                    const SizedBox(height: Space.m),
+                    _Fact(
+                      icon: Icons.menu_book_outlined,
+                      text: started ? '${(percent * 100).round()}% read' : 'Not opened yet',
                     ),
-                    if (audioLine != null) Text(audioLine, style: muted),
+                    if (audioLine != null) ...[
+                      const SizedBox(height: Space.xs),
+                      _Fact(icon: Icons.headphones_rounded, text: audioLine),
+                    ],
                     if (started) ...[
                       const SizedBox(height: Space.s),
                       ProgressLine(
@@ -676,6 +683,34 @@ class _Featured extends ConsumerWidget {
               ),
             ],
           ],
+        ),
+      ],
+    );
+  }
+}
+
+/// One line under the featured book: an icon and a short fact.
+class _Fact extends StatelessWidget {
+  const _Fact({required this.icon, required this.text});
+
+  final IconData icon;
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final muted = theme.colorScheme.onSurfaceVariant;
+    return Row(
+      children: [
+        Icon(icon, size: 16, color: muted),
+        const SizedBox(width: Space.s),
+        Expanded(
+          child: Text(
+            text,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: theme.textTheme.bodyMedium?.copyWith(color: muted),
+          ),
         ),
       ],
     );

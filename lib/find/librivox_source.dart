@@ -139,4 +139,7 @@ FoundBook foundRecording(LibrivoxBook b) => FoundBook(
   reader: b.readerLine,
   readerCount: b.readers.length,
   recordingId: b.id,
+  coverUrl: b.archiveId == null
+      ? null
+      : 'https://archive.org/services/img/${b.archiveId}',
 );

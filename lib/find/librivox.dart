@@ -31,6 +31,7 @@ class LibrivoxBook {
     required this.readers,
     this.gutenbergId,
     this.pageUrl,
+    this.archiveId,
   });
 
   final String id;
@@ -46,6 +47,9 @@ class LibrivoxBook {
   /// The Project Gutenberg book it was read from, when LibriVox says.
   final String? gutenbergId;
   final Uri? pageUrl;
+
+  /// The recording's item on archive.org, whose picture is its cover art.
+  final String? archiveId;
 
   bool get solo => readers.length == 1;
   bool get dramatic => title.toLowerCase().contains('dramatic');
@@ -138,6 +142,9 @@ List<LibrivoxBook> parseLibrivoxFeed(Map<String, dynamic> json) {
         readers: readers,
         gutenbergId: gutenbergIdIn(b['url_text_source'] as String?),
         pageUrl: Uri.tryParse((b['url_librivox'] as String?) ?? ''),
+        archiveId: RegExp(r'archive\.org/details/([^/?#]+)')
+            .firstMatch((b['url_iarchive'] as String?) ?? '')
+            ?.group(1),
       ),
     );
   }

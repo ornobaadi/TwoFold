@@ -76,6 +76,7 @@ flutter:
 
   assets:
     - assets/brand/signature.png
+    - assets/covers/
     - assets/licenses/
     - assets/samples/
 

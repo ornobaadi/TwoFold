@@ -47,109 +47,155 @@ class WelcomeScreen extends ConsumerWidget {
     final c = context.twofold;
     return Scaffold(
       body: SafeArea(
-        child: ListView(
-          padding: const EdgeInsets.fromLTRB(Space.xl, 56, Space.xl, Space.xl),
-          children: [
-            const _Books(),
-            const SizedBox(height: Space.xl),
-            Text(
-              'Read it. Hear it.\nNever lose your place.',
-              style: theme.textTheme.headlineMedium?.copyWith(
-                fontFamily: serifFont,
-                fontWeight: FontWeight.w600,
-                height: 1.15,
+        child: LayoutBuilder(
+          builder: (context, box) => SingleChildScrollView(
+            child: ConstrainedBox(
+              constraints: BoxConstraints(minHeight: box.maxHeight),
+              child: IntrinsicHeight(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(Space.xl, Space.xl, Space.xl, Space.l),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      const Spacer(),
+                      const _Fan(),
+                      const SizedBox(height: Space.xl),
+                      Text(
+                        'Read it. Hear it.\nNever lose your place.',
+                        textAlign: TextAlign.center,
+                        style: theme.textTheme.headlineMedium?.copyWith(
+                          fontFamily: serifFont,
+                          fontWeight: FontWeight.w600,
+                          height: 1.15,
+                        ),
+                      ),
+                      const SizedBox(height: Space.m),
+                      Text(
+                        "The great classics, free, each with a reader's voice. "
+                        'Turn the page on the bus, listen on the walk home, '
+                        'and pick up at the same line.',
+                        textAlign: TextAlign.center,
+                        style: theme.textTheme.bodyLarge?.copyWith(color: c.muted, height: 1.45),
+                      ),
+                      const Spacer(),
+                      const SizedBox(height: Space.xl),
+                      _Choice(
+                        primary: true,
+                        icon: Icons.headphones_rounded,
+                        title: 'Get a free book with audio',
+                        subtitle: 'Pride and Prejudice, Dracula, Sherlock Holmes…',
+                        onTap: () => _done(context, ref, const HomeShell(initialTab: 1)),
+                      ),
+                      _Choice(
+                        icon: Icons.description_outlined,
+                        title: 'Open my own book and audio',
+                        subtitle: 'EPUB or PDF, with MP3 or M4B files',
+                        onTap: () => _own(context, ref),
+                      ),
+                      _Choice(
+                        icon: Icons.play_arrow_rounded,
+                        title: 'Try a 10-minute story',
+                        subtitle: 'The Story of an Hour, already on your phone',
+                        onTap: () async {
+                          final id = sampleBooks.first.id;
+                          final there = await ref.read(bookRepoProvider).getBook(id);
+                          if (!context.mounted) return;
+                          await _done(
+                            context,
+                            ref,
+                            HomeShell(resumeBookId: there == null ? null : id),
+                          );
+                        },
+                      ),
+                      const SizedBox(height: Space.s),
+                      Text(
+                        'No account. No ads. Online only when you ask.',
+                        textAlign: TextAlign.center,
+                        style: theme.textTheme.bodySmall,
+                      ),
+                    ],
+                  ),
+                ),
               ),
             ),
-            const SizedBox(height: Space.m),
-            Text(
-              'Thousands of classics come free with a recording. Read on the '
-              'bus, listen on the walk home, and pick up at the same line.',
-              style: theme.textTheme.bodyLarge?.copyWith(color: c.muted),
-            ),
-            const SizedBox(height: Space.xl),
-            Text(
-              'HOW WOULD YOU LIKE TO START?',
-              style: theme.textTheme.labelMedium?.copyWith(
-                letterSpacing: 1.2,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-            const SizedBox(height: Space.s),
-            _Choice(
-              primary: true,
-              icon: Icons.headphones_rounded,
-              title: 'Get a free book with audio',
-              subtitle: 'Pride and Prejudice, Dracula, Sherlock Holmes…',
-              onTap: () => _done(context, ref, const HomeShell(initialTab: 1)),
-            ),
-            _Choice(
-              icon: Icons.description_outlined,
-              title: 'Open my own book and audio',
-              subtitle: 'EPUB or PDF, with MP3 or M4B files',
-              onTap: () => _own(context, ref),
-            ),
-            _Choice(
-              icon: Icons.play_arrow_rounded,
-              title: 'Try a 10-minute story',
-              subtitle: 'The Story of an Hour, already on your phone',
-              onTap: () async {
-                final id = sampleBooks.first.id;
-                final there = await ref.read(bookRepoProvider).getBook(id);
-                if (!context.mounted) return;
-                await _done(
-                  context,
-                  ref,
-                  HomeShell(resumeBookId: there == null ? null : id),
-                );
-              },
-            ),
-            const SizedBox(height: Space.xl),
-            Text(
-              'No account. No ads. Online only when you ask.',
-              textAlign: TextAlign.center,
-              style: theme.textTheme.bodySmall,
-            ),
-          ],
+          ),
         ),
       ),
     );
   }
 }
 
-class _Books extends StatelessWidget {
-  const _Books();
+/// Five first editions fanned out like books on a table, the middle one
+/// with headphones: what the app is, before a word is read.
+class _Fan extends StatelessWidget {
+  const _Fan();
 
   @override
   Widget build(BuildContext context) {
     final s = Theme.of(context).colorScheme;
-    Widget book(int i, double turn, {bool ear = false}) {
-      final (bg, fg) = clothFor(['Pride', 'Dracula', 'Oz'][i]);
-      return Transform.rotate(
-        angle: turn,
-        child: Container(
-          width: 58,
-          height: 84,
-          decoration: BoxDecoration(
-            color: ear ? s.primary : bg,
-            borderRadius: BorderRadius.circular(5),
+    const w = 100.0;
+    const h = w * 1.5;
+    Widget cover(String name, double turn, double dx, double dy, {bool front = false}) {
+      final scale = front ? 1.15 : 1.0;
+      return Positioned(
+        left: 0,
+        right: 0,
+        top: dy,
+        child: Transform.translate(
+          offset: Offset(dx, 0),
+          child: Transform.rotate(
+            angle: turn,
+            alignment: Alignment.bottomCenter,
+            child: Center(
+              child: Container(
+                width: w * scale,
+                height: h * scale,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(6),
+                  boxShadow: const [
+                    BoxShadow(color: Color(0x40000000), blurRadius: 18, offset: Offset(0, 8)),
+                  ],
+                ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(6),
+                  child: Stack(
+                    fit: StackFit.expand,
+                    children: [
+                      Image.asset('assets/covers/$name.jpg', fit: BoxFit.cover),
+                      if (front)
+                        Align(
+                          alignment: Alignment.bottomRight,
+                          child: Container(
+                            margin: const EdgeInsets.all(8),
+                            width: 34,
+                            height: 34,
+                            decoration: BoxDecoration(color: s.primary, shape: BoxShape.circle),
+                            child: Icon(Icons.headphones_rounded, size: 19, color: s.onPrimary),
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
           ),
-          child: ear
-              ? Icon(Icons.headphones_rounded, color: s.onPrimary, size: 26)
-              : null,
         ),
       );
     }
 
     return ExcludeSemantics(
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.end,
-        children: [
-          book(0, -0.1),
-          const SizedBox(width: 10),
-          book(1, 0),
-          const SizedBox(width: 10),
-          book(2, 0.09, ear: true),
-        ],
+      child: SizedBox(
+        height: h * 1.15 + 30,
+        child: Stack(
+          clipBehavior: Clip.none,
+          children: [
+            cover('alice', -0.30, -120, 30),
+            cover('gatsby', 0.30, 120, 30),
+            cover('dracula', -0.15, -62, 10),
+            cover('holmes', 0.15, 62, 10),
+            cover('pride', 0, 0, 0, front: true),
+          ],
+        ),
       ),
     );
   }

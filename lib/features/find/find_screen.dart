@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -623,7 +624,6 @@ class _FindScreenState extends ConsumerState<FindScreen> {
                 ),
               ),
               const SizedBox(height: Space.s),
-              const Divider(),
               Expanded(child: _listing ? _list(theme) : _home(theme)),
               AnimatedSize(
                 duration: easeDuration,
@@ -689,15 +689,11 @@ class _FindScreenState extends ConsumerState<FindScreen> {
     return ListView(
       padding: const EdgeInsets.fromLTRB(Space.l, 0, Space.l, Space.xl),
       children: [
-        Text(
-          'Searches Project Gutenberg, LibriVox and the Internet Archive at once.',
-          style: theme.textTheme.bodySmall?.copyWith(color: c.muted),
-        ),
-        const SizedBox(height: Space.l),
+        const SizedBox(height: Space.s),
         Text('CLASSICS WITH AUDIOBOOKS', style: _overline(theme)),
         const SizedBox(height: Space.s),
         SizedBox(
-          height: 150,
+          height: 172,
           child: ListView.separated(
             scrollDirection: Axis.horizontal,
             itemCount: classicsWithAudio.length,
@@ -712,13 +708,13 @@ class _FindScreenState extends ConsumerState<FindScreen> {
                   onTap: () => _details(b),
                   borderRadius: BorderRadius.circular(8),
                   child: SizedBox(
-                    width: 84,
+                    width: 96,
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Stack(
                           children: [
-                            FoundCover(book: b, width: 84),
+                            FoundCover(book: b, width: 96),
                             const Positioned(
                               right: 5,
                               bottom: 5,
@@ -748,37 +744,11 @@ class _FindScreenState extends ConsumerState<FindScreen> {
           crossAxisCount: 2,
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
-          mainAxisSpacing: Space.s,
-          crossAxisSpacing: Space.s,
-          childAspectRatio: 2.6,
+          mainAxisSpacing: Space.m,
+          crossAxisSpacing: Space.m,
+          childAspectRatio: 1.45,
           children: [
-            for (final s in EverythingSource.lists)
-              OutlinedButton(
-                style: OutlinedButton.styleFrom(
-                  alignment: Alignment.centerLeft,
-                  padding: const EdgeInsets.symmetric(horizontal: Space.m),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                ),
-                onPressed: () => _browse(s),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      s.title,
-                      maxLines: 1,
-                      style: theme.textTheme.titleSmall?.copyWith(fontFamily: serifFont),
-                    ),
-                    if (s.blurb != null)
-                      Text(
-                        s.blurb!,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: theme.textTheme.labelMedium?.copyWith(color: c.muted),
-                      ),
-                  ],
-                ),
-              ),
+            for (final s in EverythingSource.lists) _BrowseCard(shelf: s, onTap: () => _browse(s)),
           ],
         ),
         const SizedBox(height: Space.xl),
@@ -1024,14 +994,54 @@ class _ShelfList extends StatelessWidget {
 
 /// A cover drawn from the title, in a book-cloth colour, so lists look like a
 /// shelf without fetching a picture for every book.
-class FoundCover extends StatelessWidget {
-  const FoundCover({super.key, required this.book, this.width = 40});
+class FoundCover extends ConsumerWidget {
+  const FoundCover({super.key, required this.book, this.width = 40, this.drawnOnly = false});
 
   final FoundBook book;
   final double width;
+  final bool drawnOnly;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final drawn = _drawn();
+    if (drawnOnly) return drawn;
+    final radius = BorderRadius.circular(width < 64 ? 4 : 8);
+    Widget framed(Widget image) => ExcludeSemantics(
+      child: Container(
+        width: width,
+        height: width * 1.45,
+        decoration: BoxDecoration(
+          borderRadius: radius,
+          boxShadow: width < 64
+              ? null
+              : const [BoxShadow(color: Color(0x33000000), blurRadius: 10, offset: Offset(0, 4))],
+        ),
+        child: ClipRRect(borderRadius: radius, child: image),
+      ),
+    );
+    final asset = book.coverAsset;
+    if (asset != null) {
+      return framed(Image.asset(asset, fit: BoxFit.cover, cacheWidth: (width * 3).round()));
+    }
+    final url = book.coverUrl;
+    if (url == null) return drawn;
+    return FutureBuilder<Uint8List?>(
+      future: coverBytes(ref.read(findServiceProvider).web, url),
+      builder: (context, snap) {
+        final bytes = snap.data;
+        if (bytes == null) return drawn;
+        return framed(Image.memory(
+          bytes,
+          fit: BoxFit.cover,
+          cacheWidth: (width * 3).round(),
+          gaplessPlayback: true,
+          errorBuilder: (_, _, _) => drawn,
+        ));
+      },
+    );
+  }
+
+  Widget _drawn() {
     final (bg, fg) = clothFor(book.title);
     final small = width < 64;
     return ExcludeSemantics(
@@ -1320,10 +1330,13 @@ class _Cover extends StatelessWidget {
   final FoundBook book;
   final BookInfo? info;
   final BookInfoService service;
-  static const width = 88.0;
+  static const width = 112.0;
 
   @override
   Widget build(BuildContext context) {
+    if (book.coverAsset != null || book.coverUrl != null) {
+      return FoundCover(book: book, width: width);
+    }
     final drawn = FoundCover(book: book, width: width);
     final url = info?.cover;
     if (url == null) return drawn;
@@ -2005,12 +2018,105 @@ class AudioTag extends StatelessWidget {
 /// Well-known Gutenberg books that LibriVox has recorded, for Find's front
 /// page. Their recordings are looked up when one is opened.
 const classicsWithAudio = [
-  FoundBook(source: 'gutenberg', id: '1342', title: 'Pride and Prejudice', author: 'Jane Austen'),
-  FoundBook(source: 'gutenberg', id: '345', title: 'Dracula', author: 'Bram Stoker'),
-  FoundBook(source: 'gutenberg', id: '1661', title: 'The Adventures of Sherlock Holmes', author: 'Arthur Conan Doyle'),
-  FoundBook(source: 'gutenberg', id: '11', title: "Alice's Adventures in Wonderland", author: 'Lewis Carroll'),
-  FoundBook(source: 'gutenberg', id: '84', title: 'Frankenstein', author: 'Mary Shelley'),
-  FoundBook(source: 'gutenberg', id: '55', title: 'The Wonderful Wizard of Oz', author: 'L. Frank Baum'),
-  FoundBook(source: 'gutenberg', id: '120', title: 'Treasure Island', author: 'Robert Louis Stevenson'),
-  FoundBook(source: 'gutenberg', id: '35', title: 'The Time Machine', author: 'H. G. Wells'),
+  FoundBook(source: 'gutenberg', id: '1342', title: 'Pride and Prejudice', author: 'Jane Austen', coverAsset: 'assets/covers/pride.jpg'),
+  FoundBook(source: 'gutenberg', id: '345', title: 'Dracula', author: 'Bram Stoker', coverAsset: 'assets/covers/dracula.jpg'),
+  FoundBook(source: 'gutenberg', id: '1661', title: 'The Adventures of Sherlock Holmes', author: 'Arthur Conan Doyle', coverAsset: 'assets/covers/holmes.jpg'),
+  FoundBook(source: 'gutenberg', id: '11', title: "Alice's Adventures in Wonderland", author: 'Lewis Carroll', coverAsset: 'assets/covers/alice.jpg'),
+  FoundBook(source: 'gutenberg', id: '84', title: 'Frankenstein', author: 'Mary Shelley', coverAsset: 'assets/covers/frank.jpg'),
+  FoundBook(source: 'gutenberg', id: '55', title: 'The Wonderful Wizard of Oz', author: 'L. Frank Baum', coverAsset: 'assets/covers/oz.jpg'),
+  FoundBook(source: 'gutenberg', id: '64317', title: 'The Great Gatsby', author: 'F. Scott Fitzgerald', coverAsset: 'assets/covers/gatsby.jpg'),
 ];
+
+/// Cover pictures, fetched once each while the app runs. Only the rows on
+/// screen ask, through the same strict client as everything else; a picture
+/// must really be a JPEG or PNG.
+final _covers = <String, Future<Uint8List?>>{};
+
+Future<Uint8List?> coverBytes(Web web, String url) {
+  if (_covers.length > 300) _covers.remove(_covers.keys.first);
+  return _covers.putIfAbsent(url, () async {
+    try {
+      final b = await web.getBytes(Uri.parse(url), maxBytes: 1 << 20, timeout: const Duration(seconds: 15));
+      final jpeg = b.length > 2048 && b[0] == 0xFF && b[1] == 0xD8;
+      final png = b.length > 2048 && b[0] == 0x89 && b[1] == 0x50;
+      return jpeg || png ? b : null;
+    } catch (_) {
+      return null;
+    }
+  });
+}
+
+/// A list on Find's front page, as a small cloth-bound card with an emblem.
+class _BrowseCard extends StatelessWidget {
+  const _BrowseCard({required this.shelf, required this.onTap});
+
+  final Shelf shelf;
+  final VoidCallback onTap;
+
+  static const _looks = <String, (IconData, Color)>{
+    'Popular': (Icons.local_fire_department_rounded, Color(0xFF7A2E2E)),
+    'New audiobooks': (Icons.headphones_rounded, Color(0xFF34407A)),
+    'Mystery': (Icons.search_rounded, Color(0xFF2B3440)),
+    'Romance': (Icons.favorite_rounded, Color(0xFF8C3B4E)),
+    'Adventure': (Icons.explore_rounded, Color(0xFF2F4A3A)),
+    'Ghost stories': (Icons.nightlight_round, Color(0xFF3E3553)),
+    'Science fiction': (Icons.rocket_launch_rounded, Color(0xFF1F4752)),
+    'For children': (Icons.cruelty_free_rounded, Color(0xFF8A5A1E)),
+  };
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final (icon, bg) = _looks[shelf.title] ?? (Icons.menu_book_rounded, const Color(0xFF3A3833));
+    const fg = Color(0xFFF7F3EA);
+    return Semantics(
+      button: true,
+      label: '${shelf.title}. ${shelf.blurb ?? ''}',
+      excludeSemantics: true,
+      child: Material(
+        color: bg,
+        borderRadius: BorderRadius.circular(14),
+        clipBehavior: Clip.antiAlias,
+        child: InkWell(
+          onTap: onTap,
+          child: Stack(
+            children: [
+              Positioned(
+                right: -14,
+                bottom: -18,
+                child: Icon(icon, size: 92, color: fg.withValues(alpha: 0.13)),
+              ),
+              Padding(
+                padding: const EdgeInsets.all(Space.m),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Icon(icon, size: 20, color: fg),
+                    const Spacer(),
+                    Text(
+                      shelf.title,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        fontFamily: serifFont,
+                        fontWeight: FontWeight.w600,
+                        color: fg,
+                      ),
+                    ),
+                    if (shelf.blurb != null)
+                      Text(
+                        shelf.blurb!,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: theme.textTheme.labelMedium?.copyWith(color: fg.withValues(alpha: 0.85)),
+                      ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}

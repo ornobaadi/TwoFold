@@ -13,6 +13,8 @@ class FoundBook {
     this.reader,
     this.readerCount = 0,
     this.recordingId,
+    this.coverUrl,
+    this.coverAsset,
   });
 
   /// [BookSource.id] of the site it came from.
@@ -41,6 +43,10 @@ class FoundBook {
 
   /// The LibriVox recording that comes with this book, when known.
   final String? recordingId;
+
+  /// A picture of the cover: one online, or one that ships in the app.
+  final String? coverUrl;
+  final String? coverAsset;
 
   bool get isRecording => listenLength != null;
 

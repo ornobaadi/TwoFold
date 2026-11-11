@@ -82,6 +82,8 @@ List<FoundBook> parseGutenbergFeed(String xml) {
       id: match.group(1)!,
       title: title,
       author: text('content'),
+      coverUrl: 'https://www.gutenberg.org/cache/epub/${match.group(1)}/'
+          'pg${match.group(1)}.cover.medium.jpg',
     ));
   }
   return out;

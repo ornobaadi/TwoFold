@@ -142,4 +142,8 @@ FoundBook withRecording(FoundBook book, FoundBook r) => FoundBook(
   reader: r.reader,
   readerCount: r.readerCount,
   recordingId: r.id,
+  // LibriVox's cover art is drawn for the recording; Gutenberg's is often a
+  // plain generated page.
+  coverUrl: r.coverUrl ?? book.coverUrl,
+  coverAsset: book.coverAsset,
 );

@@ -103,6 +103,7 @@ List<FoundBook> parseArchiveSearch(Map<String, dynamic> json) {
           title: first(d['title'])!,
           author: first(d['creator']) == null ? null : tidyAuthor(first(d['creator'])!),
           detail: RegExp(r'^\d{4}').stringMatch(first(d['date']) ?? ''),
+          coverUrl: 'https://archive.org/services/img/${first(d['identifier'])}',
         ),
   ];
 }
