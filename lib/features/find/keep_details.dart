@@ -38,7 +38,7 @@ BookDetails detailsFrom(
 );
 
 /// Sources whose files carry a plain generated cover, not the book's art.
-const _plainCovers = {'gutenberg', 'wikisource'};
+const _plainCovers = {'gutenberg', 'wikisource', 'librivox'};
 
 /// After a Find download: keeps the details shown in Find, and gives the book
 /// Open Library's cover when its own is missing or plain. Never throws; the

@@ -1,7 +1,7 @@
 import 'package:path/path.dart' as p;
 import 'package:sqflite/sqflite.dart';
 
-const _dbVersion = 5;
+const _dbVersion = 6;
 
 /// Opens the app database. Pass [path] to open elsewhere (tests use an in-memory db).
 Future<Database> openTwoFoldDb({String? path, DatabaseFactory? factory}) async {
@@ -22,6 +22,11 @@ Future<Database> openTwoFoldDb({String? path, DatabaseFactory? factory}) async {
           await db.execute('ALTER TABLE marks ADD COLUMN note TEXT');
         }
         if (from < 5) await _createDetails(db);
+        if (from < 6) {
+          await db.execute('ALTER TABLE audio_tracks ADD COLUMN remote_url TEXT');
+          await db.execute('ALTER TABLE audio_tracks ADD COLUMN download_id INTEGER');
+          await _createAudiobooks(db);
+        }
       },
     ),
   );
@@ -60,9 +65,25 @@ Future<void> _createDetails(Database db) => db.execute('''
       updated_at   INTEGER NOT NULL
     )''');
 
+/// A free recording attached to a book (LibriVox): who reads it and where
+/// it came from, for credits and download status.
+Future<void> _createAudiobooks(Database db) => db.execute('''
+    CREATE TABLE audiobooks (
+      book_id   TEXT PRIMARY KEY REFERENCES books(id) ON DELETE CASCADE,
+      source    TEXT NOT NULL,
+      source_id TEXT NOT NULL,
+      title     TEXT,
+      reader    TEXT,
+      page_url  TEXT,
+      total_ms  INTEGER NOT NULL DEFAULT 0,
+      parts     INTEGER NOT NULL DEFAULT 0,
+      added_at  INTEGER NOT NULL
+    )''');
+
 Future<void> _create(Database db, int version) async {
   await _createMarks(db);
   await _createDetails(db);
+  await _createAudiobooks(db);
   await db.execute('''
     CREATE TABLE books (
       id          TEXT PRIMARY KEY,
@@ -81,7 +102,9 @@ Future<void> _create(Database db, int version) async {
       file_path   TEXT NOT NULL,
       position    INTEGER NOT NULL,
       duration_ms INTEGER,
-      title       TEXT
+      title       TEXT,
+      remote_url  TEXT,
+      download_id INTEGER
     )''');
   await db.execute('''
     CREATE TABLE progress (

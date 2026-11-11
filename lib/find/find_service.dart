@@ -8,6 +8,8 @@ import 'archive_source.dart';
 import 'book_info.dart';
 import 'book_source.dart';
 import 'cover_source.dart';
+import 'librivox.dart';
+import 'librivox_source.dart';
 import 'gutenberg_source.dart';
 import 'opds_source.dart';
 import 'web.dart';
@@ -21,14 +23,18 @@ class FindService {
     Future<Directory> Function()? tempDir,
     BookInfoService? info,
     CoverService? covers,
+    LibrivoxService? librivox,
     this.maxBytes = 150 << 20,
   }) : web = web ?? Web(),
        _tempDir = tempDir ?? _systemTemp {
     this.info = info ?? BookInfoService(this.web);
     this.covers = covers ?? CoverService(this.web);
+    this.librivox = librivox ?? LibrivoxService(this.web);
+    recordings = LibrivoxSource(this.web);
     builtIn = sources ??
         [
           GutenbergSource(this.web),
+          recordings,
           ArchiveSource(this.web, maxBytes: maxBytes),
           WikisourceSource(this.web),
           unglueSource(this.web),
@@ -43,6 +49,12 @@ class FindService {
 
   /// Covers to choose from, looked up only when the user asks.
   late final CoverService covers;
+
+  /// Free recordings from LibriVox, looked up only when the user asks.
+  late final LibrivoxService librivox;
+
+  /// LibriVox as a library to search and browse.
+  late final LibrivoxSource recordings;
 
   /// Catalogs the user added, by their link.
   List<OpdsSource> catalogs = [];

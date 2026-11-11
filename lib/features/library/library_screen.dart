@@ -10,6 +10,7 @@ import '../../audio/player_controller.dart';
 import '../../data/models.dart';
 import 'book_card.dart';
 import 'cover_picker.dart';
+import '../listen/audiobook_sheet.dart';
 import 'providers.dart';
 
 /// Filters by title or author, then sorts. Recent keeps the order it was given.
@@ -132,6 +133,16 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
             ),
             ListTile(
               contentPadding: const EdgeInsets.symmetric(horizontal: Space.xl),
+              leading: const Icon(Icons.headphones_outlined),
+              title: Text(entry.hasAudio ? 'Change audiobook' : 'Find a free audiobook'),
+              subtitle: const Text('Recordings from LibriVox volunteers'),
+              onTap: () {
+                Navigator.of(sheet).pop();
+                showAudiobookSheet(context, entry.book);
+              },
+            ),
+            ListTile(
+              contentPadding: const EdgeInsets.symmetric(horizontal: Space.xl),
               leading: const Icon(Icons.image_outlined),
               title: const Text('Change cover'),
               subtitle: const Text('Pick from Open Library or your phone'),
@@ -192,6 +203,8 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
     if (yes != true) return;
     final handler = ref.read(audioHandlerProvider);
     if (handler.bookId == book.id) await handler.unload();
+    // Saved free audiobook files live outside the book folder.
+    await ref.read(downloadsProvider).forget(book.id).catchError((_) {});
     await ref.read(importerProvider).removeBook(book.id);
     if (mounted) ref.invalidate(libraryProvider);
   }

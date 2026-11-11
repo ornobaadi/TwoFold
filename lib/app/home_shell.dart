@@ -28,6 +28,14 @@ class HomeShell extends ConsumerStatefulWidget {
 class _HomeShellState extends ConsumerState<HomeShell> {
   late int _tab = widget.initialTab;
 
+  @override
+  void initState() {
+    super.initState();
+    // Parts Android saved while the app was closed are taken in, and saving
+    // carries on.
+    ref.read(downloadsProvider).refresh().catchError((_) {});
+  }
+
   void _go(int tab) {
     if (tab == _tab) return;
     // Books found in Find show up on the shelf straight away.

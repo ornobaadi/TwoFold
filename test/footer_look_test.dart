@@ -34,7 +34,7 @@ void main() {
           tester.element(find.byType(MadeBy))));
       await tester.pump();
       expect(find.text('HANDCRAFTED BY'), findsOneWidget);
-      expect(find.text('TWOFOLD  •  VERSION $appVersion'), findsOneWidget);
+      expect(find.text('TWOFOLD • VERSION $appVersion'), findsOneWidget);
       expect(find.bySemanticsLabel(RegExp('Handcrafted by Ornob Aadi')),
           findsOneWidget);
       if (Platform.environment['LOOK'] == '1') {

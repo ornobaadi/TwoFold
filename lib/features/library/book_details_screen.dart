@@ -12,6 +12,8 @@ import '../../find/web.dart';
 import '../find/details_parts.dart';
 import '../find/keep_details.dart';
 import '../find/providers.dart';
+import '../listen/audiobook_sheet.dart';
+import '../listen/save_status.dart';
 import 'book_card.dart';
 import 'cover_picker.dart';
 import 'providers.dart';
@@ -227,6 +229,19 @@ class _BookDetailsScreenState extends ConsumerState<BookDetailsScreen> {
           ),
           const SizedBox(height: Space.l),
           FactsCard(facts),
+          const SizedBox(height: Space.l),
+          if (entry.hasAudio)
+            SaveStatus(bookId: book.id)
+          else
+            Card(
+              child: ListTile(
+                leading: const Icon(Icons.headphones_outlined),
+                title: const Text('Add a free audiobook'),
+                subtitle: const Text('Recordings from LibriVox volunteers'),
+                trailing: const Icon(Icons.chevron_right_rounded),
+                onTap: () => showAudiobookSheet(context, book),
+              ),
+            ),
           if (_loaded && (d == null || !d.lookedUp)) ...[
             const SizedBox(height: Space.l),
             Card(

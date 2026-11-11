@@ -6,6 +6,7 @@ import '../../app/theme.dart';
 import '../../audio/player_controller.dart';
 import '../../import/samples.dart';
 import '../library/providers.dart';
+import '../../audio/downloads.dart' show formatSize;
 import 'settings_sheet.dart';
 
 const appVersion = '0.2.0';
@@ -97,6 +98,12 @@ class SettingsScreen extends ConsumerWidget {
                     ),
                   ],
                 ),
+              ),
+              SwitchListTile(
+                title: const Text('Save free audiobooks on Wi-Fi only'),
+                subtitle: const _SavedSpace(),
+                value: s.wifiOnlyDownloads,
+                onChanged: (v) => notifier.change(s.copyWith(wifiOnlyDownloads: v)),
               ),
               SwitchListTile(
                 title: const Text('Rewind after a long pause'),
@@ -228,11 +235,13 @@ class MadeBy extends StatelessWidget {
     final theme = Theme.of(context);
     final ink = theme.colorScheme.onSurface;
     final muted = theme.colorScheme.onSurfaceVariant;
-    TextStyle? caps(Color c) => theme.textTheme.labelMedium?.copyWith(
+    // Small caps, widely spaced: quiet but still readable (11 sp).
+    TextStyle? caps(Color c) => theme.textTheme.labelSmall?.copyWith(
       color: c,
-      letterSpacing: 3,
+      fontSize: 11,
+      letterSpacing: 1.6,
       fontWeight: FontWeight.w500,
-      height: 2,
+      height: 1.7,
     );
     return Semantics(
       container: true,
@@ -242,32 +251,32 @@ class MadeBy extends StatelessWidget {
         child: Padding(
           padding: const EdgeInsets.fromLTRB(
             Space.s,
-            Space.xxl,
+            Space.xl,
             Space.s,
             Space.l,
           ),
           child: Column(
             children: [
               Text('HANDCRAFTED BY', style: caps(muted)),
-              const SizedBox(height: Space.m),
+              const SizedBox(height: Space.s),
               // White ink on transparent, tinted to the page's text colour.
               Image.asset(
                 'assets/brand/signature.png',
-                height: 64,
+                height: 48,
                 color: ink,
                 colorBlendMode: BlendMode.srcIn,
                 filterQuality: FilterQuality.medium,
               ),
-              const SizedBox(height: Space.l),
+              const SizedBox(height: Space.m),
               // Shrinks on narrow phones instead of breaking the line.
               FittedBox(
                 fit: BoxFit.scaleDown,
-                child: Text('TWOFOLD  •  VERSION $appVersion', style: caps(muted)),
+                child: Text('TWOFOLD • VERSION $appVersion', style: caps(muted)),
               ),
               // Shrinks on narrow phones instead of breaking the line.
               FittedBox(
                 fit: BoxFit.scaleDown,
-                child: Text('NO ACCOUNT  •  NO ADS  •  NO TRACKING', style: caps(muted)),
+                child: Text('NO ACCOUNT • NO ADS • NO TRACKING', style: caps(muted)),
               ),
               // Shrinks on narrow phones instead of breaking the line.
               FittedBox(
@@ -280,4 +289,22 @@ class MadeBy extends StatelessWidget {
       ),
     );
   }
+}
+
+/// Space the saved free audiobooks use, under the Wi-Fi switch.
+class _SavedSpace extends ConsumerWidget {
+  const _SavedSpace();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) => FutureBuilder<int>(
+    future: ref.read(downloadsProvider).savedBytes(),
+    builder: (context, snap) {
+      final bytes = snap.data ?? 0;
+      return Text(
+        bytes == 0
+            ? 'Mobile data is never used for saving'
+            : 'Saved audiobooks use ${formatSize(bytes)}',
+      );
+    },
+  );
 }

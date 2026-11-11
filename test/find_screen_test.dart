@@ -138,7 +138,7 @@ void main() {
         );
 
     await tester.pumpWidget(app());
-    expect(find.textContaining('only place TwoFold uses the internet'), findsOneWidget);
+    expect(find.textContaining('goes online only when you search'), findsOneWidget);
     expect(find.text('Blurb of Project Gutenberg.'), findsOneWidget);
 
     // An empty search does nothing.
@@ -177,7 +177,7 @@ void main() {
     await _settle(tester, () => find.text('Archive Find').evaluate().isNotEmpty);
     expect(archive.queries, ['alice']);
     expect(find.text('Alice Story'), findsOneWidget, reason: 'only in the tray now');
-    expect(find.text('Search Internet Archive'), findsOneWidget);
+    expect(find.text('Title or author in Internet Archive'), findsOneWidget);
 
     // Nothing found and no connection both explain themselves.
     await tester.enterText(find.byType(TextField), 'nothing');
@@ -267,7 +267,8 @@ void main() {
     expect(find.text('Open in reader'), findsOneWidget);
     // The tray under the list says the book is in, and offers to open it.
     expect(find.textContaining('In your library'), findsWidgets);
-    expect((await tester.runAsync(() => repo.allBooks()))!.single.title, 'Popular Pick');
+    final all = (await tester.runAsync(() => repo.allBooks()))!;
+    expect(all.map((b) => b.title), ['Popular Pick'], reason: all.map((b) => '${b.title}|${b.id}').join(';'));
 
     // Closing the sheet and going back shows the lists again.
     await tester.tapAt(const Offset(20, 20));

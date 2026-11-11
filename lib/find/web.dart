@@ -15,6 +15,7 @@ const findHosts = {
   'wmcloud.org',
   'openlibrary.org',
   'unglue.it',
+  'librivox.org',
 };
 
 /// Something went wrong that the user can be told about in plain words.

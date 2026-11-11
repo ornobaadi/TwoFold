@@ -14,6 +14,7 @@ import '../../import/device_files.dart';
 import '../library/book_card.dart';
 import '../player/mini_play_button.dart';
 import '../player/player_bar.dart';
+import '../listen/audiobook_sheet.dart';
 import '../settings/settings_sheet.dart';
 import 'epub_view.dart';
 import 'pane.dart';
@@ -511,6 +512,7 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> {
                           : _AddAudioBar(
                               message: _audioError,
                               onTap: _addAudio,
+                              onFree: () => showAudiobookSheet(context, _book),
                             ),
                       const SizedBox(height: Space.s),
                       // The labels stay: they are how people find things.
@@ -731,10 +733,15 @@ class _TouchShield extends StatelessWidget {
 }
 
 class _AddAudioBar extends StatelessWidget {
-  const _AddAudioBar({required this.message, required this.onTap});
+  const _AddAudioBar({
+    required this.message,
+    required this.onTap,
+    required this.onFree,
+  });
 
   final String? message;
   final VoidCallback onTap;
+  final VoidCallback onFree;
 
   @override
   Widget build(BuildContext context) {
@@ -754,7 +761,12 @@ class _AddAudioBar extends StatelessWidget {
                   ?.copyWith(color: c.muted),
             ),
           ),
-          TextButton(onPressed: onTap, child: const Text('Add audio')),
+          TextButton(onPressed: onTap, child: const Text('Your files')),
+          TextButton.icon(
+            onPressed: onFree,
+            icon: const Icon(Icons.headphones_rounded, size: 18),
+            label: const Text('Free audiobook'),
+          ),
         ],
       ),
     );

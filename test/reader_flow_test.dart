@@ -226,7 +226,7 @@ void main() {
 
     expect(find.text('This file could not be read. You can still listen to its audio.'),
         findsNothing);
-    expect(find.text('Add audio'), findsOneWidget, reason: 'player visible at open');
+    expect(find.text('Free audiobook'), findsOneWidget, reason: 'player visible at open');
 
     final screen = tester.getSize(find.byType(ReaderScreen));
     final footerY = screen.height - 28;
@@ -234,7 +234,7 @@ void main() {
     double opacity() => tester
         .widget<AnimatedOpacity>(find
             .ancestor(
-                of: find.text('Add audio'),
+                of: find.text('Free audiobook'),
                 matching: find.byType(AnimatedOpacity))
             .first)
         .opacity;

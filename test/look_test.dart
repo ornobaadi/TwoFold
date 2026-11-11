@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -8,6 +9,8 @@ import 'package:twofold/app/home_shell.dart';
 import 'package:twofold/features/library/book_details_screen.dart';
 import 'package:twofold/features/library/cover_picker.dart';
 import 'package:twofold/find/cover_source.dart';
+import 'package:twofold/find/librivox.dart';
+import 'package:twofold/features/listen/audiobook_sheet.dart';
 import 'package:twofold/features/reader/pane.dart';
 import 'package:twofold/features/reader/places_sheet.dart';
 import 'package:twofold/features/reader/search.dart';
@@ -269,7 +272,8 @@ void main() {
       Widget withCovers(Widget child) => ProviderScope(
           overrides: [
             findServiceProvider.overrideWithValue(FindService(
-                web: Web(), sources: [_LookSource()], info: _LookInfo(), covers: _LookCovers())),
+                web: Web(), sources: [_LookSource()], info: _LookInfo(), covers: _LookCovers(),
+                librivox: _LookLibrivox())),
           ],
           child: child);
       await shot('covers', withCovers(Scaffold(body: SafeArea(child: CoverPicker(book: books[1])))), () async {
@@ -298,6 +302,38 @@ void main() {
           )));
       await shot('details', withCovers(const BookDetailsScreen(bookId: 'b')));
       await shot('details_own', withCovers(const BookDetailsScreen(bookId: 'c')));
+      await shot('audiobook', withCovers(Scaffold(body: AudiobookSheet(book: books[1]))), () async {
+        for (var i = 0; i < 4; i++) {
+          await tester.runAsync(
+              () => Future<void>.delayed(const Duration(milliseconds: 60)));
+          await tester.pump(const Duration(milliseconds: 150));
+        }
+        expect(find.text('Add audiobook'), findsOneWidget);
+        expect(find.textContaining('Read by'), findsWidgets);
+      });
+      await tester.runAsync(() async {
+        await repo.setAudiobook(
+          const Audiobook(bookId: 'b', source: 'librivox', sourceId: '254',
+              reader: 'Annie Coleman Rothenberg', parts: 3, addedAt: 1),
+          [
+            for (var i = 0; i < 3; i++)
+              AudioTrack(
+                id: 'lv$i', bookId: 'b',
+                filePath: 'https://archive.org/download/x/$i.mp3',
+                remoteUrl: 'https://archive.org/download/x/$i.mp3',
+                position: i, durationMs: 1200000, title: 'Chapter ${i + 1}'),
+          ],
+        );
+      });
+      await shot('details_audio', withCovers(const BookDetailsScreen(bookId: 'b')), () async {
+        for (var i = 0; i < 4; i++) {
+          await tester.runAsync(
+              () => Future<void>.delayed(const Duration(milliseconds: 60)));
+          await tester.pump(const Duration(milliseconds: 150));
+        }
+        await tester.scrollUntilVisible(find.textContaining('for LibriVox'), 200);
+        await tester.pump(const Duration(milliseconds: 200));
+      });
       await shot('add', const NewBookScreen());
       await shot('edit', NewBookScreen(editing: books[2]));
       await shot('settings', const SettingsScreen());
@@ -399,4 +435,17 @@ class _LookCovers extends CoverService {
   @override
   Future<Uint8List?> image(Uri url) async =>
       File('assets/samples/story-of-an-hour.png').readAsBytesSync();
+}
+
+class _LookLibrivox extends LibrivoxService {
+  _LookLibrivox() : super(Web());
+
+  @override
+  Future<List<LibrivoxBook>> find(String title, {String? author, String? gutenbergId}) async =>
+      rankRecordings(
+        parseLibrivoxFeed(jsonDecode(
+            File('test/fixtures/find/librivox_pride.json').readAsStringSync())),
+        author: 'Jane Austen',
+        gutenbergId: '1342',
+      ).take(4).toList();
 }

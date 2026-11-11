@@ -10,6 +10,9 @@ import '../../data/models.dart';
 import '../../find/book_info.dart';
 import 'details_parts.dart';
 import 'keep_details.dart';
+import '../listen/audiobook_sheet.dart';
+import '../../find/librivox.dart';
+import '../../audio/downloads.dart' show formatSize;
 import '../../find/book_source.dart';
 import '../../find/opds_source.dart';
 import '../../find/web.dart';
@@ -197,8 +200,21 @@ class _FindScreenState extends ConsumerState<FindScreen> {
     }
   }
 
+  /// Filters on the list on screen; nothing is asked of the site again.
+  LengthFilter _length = LengthFilter.any;
+  bool _oneReader = false;
+  bool _notOwned = false;
+
+  bool _keeps(FoundBook b) =>
+      _length.keeps(b) &&
+      (!_oneReader || !b.isRecording || b.readerCount == 1) &&
+      (!_notOwned || _gets[b.key]?.book == null);
+
   void _pick(BookSource source) {
     if (source.id == _source.id) return;
+    _length = LengthFilter.any;
+    _oneReader = false;
+    _notOwned = false;
     final query = _field.text.trim();
     _openSource(source).then((_) {
       if (query.isNotEmpty && mounted && _source.canSearch) _search();
@@ -362,6 +378,10 @@ class _FindScreenState extends ConsumerState<FindScreen> {
         ).then((changed) {
           if (changed && mounted) ref.invalidate(libraryProvider);
         });
+        if (_withAudio[b.key] ?? true) {
+          final list = await _audioFor(b);
+          if (list.isNotEmpty && mounted) await _addAudio(b, book);
+        }
       } finally {
         if (file.existsSync()) await file.delete();
       }
@@ -445,6 +465,48 @@ class _FindScreenState extends ConsumerState<FindScreen> {
       );
   final _infos = <String, Future<BookInfo?>>{};
 
+  /// LibriVox recordings, looked up once per book when its details open.
+  /// A recording picked in the LibriVox library comes first.
+  Future<List<LibrivoxBook>> _audioFor(FoundBook b) => _audio.putIfAbsent(
+        b.key,
+        () {
+          final service = ref.read(findServiceProvider);
+          final chosen =
+              b.source == 'librivox' ? service.recordings.recording(b.id) : null;
+          if (chosen != null) return Future.value([chosen]);
+          return service.librivox
+              .find(
+                b.title,
+                author: b.author,
+                gutenbergId: b.source == 'gutenberg' ? b.id : null,
+              )
+              .then((list) => list, onError: (Object _) => <LibrivoxBook>[]);
+        },
+      );
+  final _audio = <String, Future<List<LibrivoxBook>>>{};
+
+  /// Whether Get also adds the free audiobook, per book (yes unless unticked).
+  final _withAudio = <String, bool>{};
+
+  /// Books whose audiobook is being added, to show progress on the card.
+  final _addingAudio = <String>{};
+
+  Future<void> _addAudio(FoundBook b, Book book) async {
+    final list = await _audioFor(b);
+    if (list.isEmpty || _addingAudio.contains(b.key)) return;
+    _addingAudio.add(b.key);
+    _changed.value++;
+    try {
+      await attachRecording(ref, book, list.first, save: true);
+      _toast('Audiobook added. It plays now and saves itself for offline.');
+    } catch (_) {
+      _toast('The audiobook could not be added. Try again from the book.');
+    } finally {
+      _addingAudio.remove(b.key);
+      _changed.value++;
+    }
+  }
+
   void _details(FoundBook b) {
     showModalBottomSheet<void>(
       context: context,
@@ -462,6 +524,13 @@ class _FindScreenState extends ConsumerState<FindScreen> {
             Navigator.of(context).pop();
             _open(book);
           },
+          audio: _audioFor(b),
+          withAudio: _withAudio[b.key] ?? true,
+          onWithAudio: (v) {
+            _withAudio[b.key] = v;
+            _changed.value++;
+          },
+          onAddAudio: (book) => _addAudio(b, book),
         ),
       ),
     );
@@ -530,7 +599,7 @@ class _FindScreenState extends ConsumerState<FindScreen> {
                   controller: _field,
                   enabled: _source.canSearch,
                   hintText: _source.canSearch
-                      ? 'Search ${_source.name}'
+                      ? 'Title or author in ${_source.name}'
                       : '${_source.name} cannot be searched',
                   constraints: const BoxConstraints(minHeight: 44),
                   textInputAction: TextInputAction.search,
@@ -640,8 +709,8 @@ class _FindScreenState extends ConsumerState<FindScreen> {
           ),
         const SizedBox(height: Space.xl),
         Text(
-          'Books here are free and are saved in your library. '
-          'This is the only place TwoFold uses the internet.',
+          'Books and audiobooks here are free and are saved in your library. '
+          'TwoFold goes online only when you search, browse or get one.',
           style: theme.textTheme.bodySmall,
         ),
       ],
@@ -695,6 +764,8 @@ class _FindScreenState extends ConsumerState<FindScreen> {
             : 'Nothing on this list right now.',
       );
     } else {
+      final shown = _books.where(_keeps).toList();
+      final recordings = _books.any((b) => b.isRecording);
       body = ListView(
         padding: const EdgeInsets.fromLTRB(Space.l, 0, Space.l, Space.xl),
         children: [
@@ -702,7 +773,29 @@ class _FindScreenState extends ConsumerState<FindScreen> {
             _ShelfList(shelves: _inner, onOpen: _browse),
             const SizedBox(height: Space.l),
           ],
-          for (final b in _books)
+          if (_books.isNotEmpty)
+            _Filters(
+              recordings: recordings,
+              length: _length,
+              oneReader: _oneReader,
+              notOwned: _notOwned,
+              onLength: (v) => setState(() => _length = v),
+              onOneReader: (v) => setState(() => _oneReader = v),
+              onNotOwned: (v) => setState(() => _notOwned = v),
+              count: shown.length,
+              total: _books.length,
+            ),
+          if (shown.isEmpty && _books.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: Space.xl),
+              child: Text(
+                'None of these match the filters.'
+                '${_hasMore ? ' Show more to look further.' : ''}',
+                textAlign: TextAlign.center,
+                style: theme.textTheme.bodyMedium,
+              ),
+            ),
+          for (final b in shown)
             _ResultRow(
               book: b,
               state: _gets[b.key],
@@ -893,6 +986,7 @@ class _ResultRow extends StatelessWidget {
     final c = context.twofold;
     final get = state;
     final meta = [
+      if (book.isRecording) recordingLine(book),
       if (book.detail != null && book.author != null) book.detail!,
       if (get?.book != null) 'In your library',
     ].join(' · ');
@@ -939,7 +1033,12 @@ class _ResultRow extends StatelessWidget {
                       if (meta.isNotEmpty)
                         Padding(
                           padding: const EdgeInsets.only(top: 2),
-                          child: Text(meta, style: theme.textTheme.labelMedium),
+                          child: Text(
+                            meta,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: theme.textTheme.labelMedium,
+                          ),
                         ),
                     ],
                   ),
@@ -1121,6 +1220,10 @@ class _DetailsSheet extends StatefulWidget {
     required this.service,
     required this.onGet,
     required this.onOpen,
+    required this.audio,
+    required this.withAudio,
+    required this.onWithAudio,
+    required this.onAddAudio,
   });
 
   final FoundBook book;
@@ -1130,6 +1233,14 @@ class _DetailsSheet extends StatefulWidget {
   final BookInfoService service;
   final VoidCallback onGet;
   final ValueChanged<Book> onOpen;
+
+  /// LibriVox recordings of this book, best first.
+  final Future<List<LibrivoxBook>> audio;
+  final bool withAudio;
+  final ValueChanged<bool> onWithAudio;
+
+  /// Adds the best recording to a book already in the library.
+  final ValueChanged<Book> onAddAudio;
 
   @override
   State<_DetailsSheet> createState() => _DetailsSheetState();
@@ -1158,9 +1269,16 @@ class _DetailsSheetState extends State<_DetailsSheet> {
             else if (book.detail != null && book.author != null)
               ('Year', book.detail!),
             if (info?.pages != null) ('Pages', '${info!.pages}'),
+            if (book.isRecording) ...[
+              ('Read by', book.reader ?? 'LibriVox volunteers'),
+              ('Listening', formatLength(book.listenLength!)),
+              if (book.sizeBytes != null) ('Audio size', formatSize(book.sizeBytes!)),
+            ],
             (
               'Format',
-              book.downloads.isEmpty
+              book.isRecording
+                  ? 'EPUB from Project Gutenberg, MP3 audiobook'
+                  : book.downloads.isEmpty
                   ? 'EPUB'
                   : book.downloads
                         .map((d) => d.format.name.toUpperCase())
@@ -1216,6 +1334,13 @@ class _DetailsSheetState extends State<_DetailsSheet> {
                 onGet: widget.onGet,
                 onOpen: widget.onOpen,
                 wide: true,
+              ),
+              _FreeAudiobook(
+                audio: widget.audio,
+                state: state,
+                withAudio: widget.withAudio,
+                onWithAudio: widget.onWithAudio,
+                onAddAudio: widget.onAddAudio,
               ),
               if (state?.error != null) ...[
                 const SizedBox(height: Space.s),
@@ -1469,6 +1594,186 @@ class _Note extends StatelessWidget {
             if (action != null) ...[const SizedBox(height: Space.l), action!],
           ],
         ),
+      ),
+    );
+  }
+}
+
+/// The free LibriVox recording of a book in Find, if there is one: who reads
+/// it, how long and how big, and whether Get brings it along.
+class _FreeAudiobook extends StatelessWidget {
+  const _FreeAudiobook({
+    required this.audio,
+    required this.state,
+    required this.withAudio,
+    required this.onWithAudio,
+    required this.onAddAudio,
+  });
+
+  final Future<List<LibrivoxBook>> audio;
+  final _Get? state;
+  final bool withAudio;
+  final ValueChanged<bool> onWithAudio;
+  final ValueChanged<Book> onAddAudio;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return FutureBuilder<List<LibrivoxBook>>(
+      future: audio,
+      builder: (context, snap) {
+        final list = snap.data;
+        if (list == null || list.isEmpty) return const SizedBox.shrink();
+        final r = list.first;
+        final inLibrary = state?.book;
+        final busy = state?.working == true;
+        return Padding(
+          padding: const EdgeInsets.only(top: Space.m),
+          child: Card(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(Space.l, Space.m, Space.s, Space.s),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      const Icon(Icons.headphones_rounded, size: 18),
+                      const SizedBox(width: Space.s),
+                      Text(
+                        'FREE AUDIOBOOK',
+                        style: theme.textTheme.labelMedium?.copyWith(letterSpacing: 1.2),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: Space.xs),
+                  Text('Read by ${r.readerLine}', style: theme.textTheme.titleSmall),
+                  Text(
+                    '${formatLength(r.total)} · ${r.parts.length} parts · '
+                    '${formatSize(r.bytes)} · from LibriVox',
+                    style: theme.textTheme.bodySmall,
+                  ),
+                  if (inLibrary == null)
+                    CheckboxListTile(
+                      contentPadding: EdgeInsets.zero,
+                      controlAffinity: ListTileControlAffinity.leading,
+                      dense: true,
+                      title: const Text('Add it with the book'),
+                      subtitle: const Text('Plays right away, saves for offline'),
+                      value: withAudio,
+                      onChanged: busy ? null : (v) => onWithAudio(v ?? true),
+                    )
+                  else
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: TextButton.icon(
+                        onPressed: () => onAddAudio(inLibrary),
+                        icon: const Icon(Icons.add_rounded, size: 18),
+                        label: const Text('Add audiobook'),
+                      ),
+                    ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
+/// "Read by Annie · 9 h 4 min · 260 MB" for a recording in a list.
+String recordingLine(FoundBook b) => [
+  if (b.reader != null) 'Read by ${b.reader}',
+  if (b.listenLength != null) formatLength(b.listenLength!),
+  if (b.sizeBytes != null) formatSize(b.sizeBytes!),
+].join(' · ');
+
+/// Length filters for lists of recordings.
+enum LengthFilter {
+  any('Any length', 0, 1 << 30),
+  short('Under 3 h', 0, 3),
+  medium('3 to 10 h', 3, 10),
+  long('Over 10 h', 10, 1 << 30);
+
+  const LengthFilter(this.label, this.fromHours, this.toHours);
+
+  final String label;
+  final int fromHours;
+  final int toHours;
+
+  bool keeps(FoundBook b) {
+    final l = b.listenLength;
+    if (l == null || this == any) return true;
+    final h = l.inMinutes / 60;
+    return h >= fromHours && h < toHours;
+  }
+}
+
+/// Quick filters over a list: length for recordings, one reader, and books
+/// not yet in the library.
+class _Filters extends StatelessWidget {
+  const _Filters({
+    required this.recordings,
+    required this.length,
+    required this.oneReader,
+    required this.notOwned,
+    required this.onLength,
+    required this.onOneReader,
+    required this.onNotOwned,
+    required this.count,
+    required this.total,
+  });
+
+  final bool recordings;
+  final LengthFilter length;
+  final bool oneReader;
+  final bool notOwned;
+  final ValueChanged<LengthFilter> onLength;
+  final ValueChanged<bool> onOneReader;
+  final ValueChanged<bool> onNotOwned;
+  final int count;
+  final int total;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final chips = <Widget>[
+      if (recordings)
+        for (final f in LengthFilter.values)
+          ChoiceChip(
+            label: Text(f.label),
+            selected: length == f,
+            onSelected: (_) => onLength(f),
+          ),
+      if (recordings)
+        FilterChip(
+          label: const Text('One reader'),
+          selected: oneReader,
+          onSelected: onOneReader,
+        ),
+      FilterChip(
+        label: const Text('Not in my library'),
+        selected: notOwned,
+        onSelected: onNotOwned,
+      ),
+    ];
+    return Padding(
+      padding: const EdgeInsets.only(bottom: Space.s),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            height: 44,
+            child: ListView.separated(
+              scrollDirection: Axis.horizontal,
+              itemCount: chips.length,
+              separatorBuilder: (_, _) => const SizedBox(width: Space.s),
+              itemBuilder: (_, i) => Center(child: chips[i]),
+            ),
+          ),
+          if (count != total)
+            Text('Showing $count of $total', style: theme.textTheme.labelMedium),
+        ],
       ),
     );
   }

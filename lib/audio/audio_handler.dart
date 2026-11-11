@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:audio_service/audio_service.dart';
 import 'package:audio_session/audio_session.dart';
@@ -7,6 +8,7 @@ import 'package:just_audio/just_audio.dart';
 
 import '../data/book_repo.dart';
 import '../data/models.dart';
+import '../find/web.dart' show userAgent;
 import '../import/device_files.dart';
 import '../import/names.dart';
 import 'chapters.dart';
@@ -19,10 +21,27 @@ const _autoRewindAfter = Duration(seconds: 60);
 const _autoRewindBy = Duration(seconds: 3);
 
 /// Audio stays where the user keeps it (content URIs); books imported by older
-/// versions have copied files.
-AudioSource audioSourceFor(String path) => isContentUri(path)
-    ? AudioSource.uri(Uri.parse(path))
-    : AudioSource.file(path);
+/// versions have copied files. Parts of a free recording not yet saved play
+/// from their https address, naming TwoFold as the caller.
+AudioSource audioSourceFor(String path) {
+  if (path.startsWith('https://')) {
+    return AudioSource.uri(
+      Uri.parse(path),
+      headers: const {'User-Agent': userAgent},
+    );
+  }
+  return isContentUri(path)
+      ? AudioSource.uri(Uri.parse(path))
+      : AudioSource.file(path);
+}
+
+/// Where to play [t] from: its saved file, or online when the file is gone.
+String playablePath(AudioTrack t, {bool Function(String)? exists}) {
+  final p = t.filePath;
+  final remote = t.remoteUrl;
+  if (remote == null || p.startsWith('https://') || isContentUri(p)) return p;
+  return (exists ?? (f) => File(f).existsSync())(p) ? p : remote;
+}
 
 /// Duration of an audio file, or null if it can't be read.
 Future<Duration?> probeDuration(String path) async {
@@ -118,10 +137,30 @@ class TwoFoldAudioHandler extends BaseAudioHandler {
     session.interruptionEventStream.listen(_onInterruption);
     session.becomingNoisyEventStream.listen((_) => pause());
 
-    _player.playbackEventStream.listen(_broadcast);
+    _player.playbackEventStream.listen(
+      _broadcast,
+      onError: (Object e, StackTrace _) => _onPlayError(e),
+    );
     _player.playingStream.listen(_onPlayingChanged);
     _player.positionStream.listen((_) => _checkChapterSleep());
   }
+
+  /// A part that can't be played: most often one not saved yet while the
+  /// phone is offline. Playback pauses where it was; the UI shows [playError].
+  final playError = ValueNotifier<String?>(null);
+
+  void _onPlayError(Object e) {
+    final track = _tracks.isEmpty
+        ? null
+        : _tracks[(_player.currentIndex ?? 0).clamp(0, _tracks.length - 1)];
+    playError.value = track != null && track.isRemote
+        ? "This part isn't saved yet. Connect to the internet, or wait for "
+              'the download.'
+        : 'This audio could not be played.';
+    unawaited(_player.pause());
+  }
+
+  List<AudioTrack> _tracks = const [];
 
   Future<void> _onInterruption(AudioInterruptionEvent e) async {
     if (e.begin) {
@@ -205,6 +244,8 @@ class TwoFoldAudioHandler extends BaseAudioHandler {
     _bookId = null;
 
     final tracks = await _repo.tracksFor(book.id);
+    _tracks = tracks;
+    playError.value = null;
     if (tracks.isEmpty) {
       await unload();
       return;
@@ -229,7 +270,7 @@ class TwoFoldAudioHandler extends BaseAudioHandler {
     if (position > durations[index]) position = durations[index];
 
     await _player.setAudioSources(
-      [for (final t in tracks) audioSourceFor(t.filePath)],
+      [for (final t in tracks) audioSourceFor(playablePath(t))],
       initialIndex: index,
       initialPosition: position,
     );
@@ -266,7 +307,9 @@ class TwoFoldAudioHandler extends BaseAudioHandler {
     var found = false;
     for (var i = 0; i < tracks.length; i++) {
       final start = _timeline.toAbsolute(i, Duration.zero);
-      final isMp3 =
+      // MP3s carry no chapter list, and online parts are named already.
+      final isMp3 = tracks[i].isRemote ||
+          tracks[i].downloadable ||
           (tracks[i].title ?? tracks[i].filePath).toLowerCase().endsWith('.mp3');
       final inner = isMp3
           ? const <AudioChapter>[]
@@ -369,6 +412,7 @@ class TwoFoldAudioHandler extends BaseAudioHandler {
   @override
   Future<void> play() async {
     if (_bookId == null) return;
+    playError.value = null;
     if (_player.processingState == ProcessingState.completed) {
       await seekAbsolute(Duration.zero);
     } else if (autoRewind &&

@@ -3,6 +3,8 @@ import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:twofold/find/cover_source.dart';
 import 'package:twofold/find/find_service.dart';
+import 'package:twofold/audio/downloads.dart';
+import 'package:twofold/find/librivox.dart';
 import 'package:twofold/find/web.dart';
 
 /// Talks to the real sites. Run by hand only: LIVE=1 flutter test test/live_covers_test.dart
@@ -32,4 +34,15 @@ void main() {
     expect(targets, isNotEmpty);
     web.close();
   }, skip: !live, timeout: const Timeout(Duration(minutes: 2)));
+
+  test('LibriVox finds the matching recording and its first part is an MP3', () async {
+    final web = Web();
+    final found = await LibrivoxService(web)
+        .find('Pride and Prejudice', author: 'Jane Austen', gutenbergId: '1342');
+    expect(found.first.gutenbergId, '1342');
+    expect(found.first.parts, isNotEmpty);
+    final bytes = await web.getBytes(found.first.parts.first.url, maxBytes: 40 << 20);
+    expect(looksLikeMp3(bytes), isTrue);
+    web.close();
+  }, skip: !live, timeout: const Timeout(Duration(minutes: 3)));
 }

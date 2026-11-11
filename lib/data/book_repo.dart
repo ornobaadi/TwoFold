@@ -79,6 +79,50 @@ class BookRepo {
     });
   }
 
+  /// Replaces [bookId]'s audio with a free recording's parts, all online.
+  Future<void> setAudiobook(Audiobook book, List<AudioTrack> parts) =>
+      _db.transaction((txn) async {
+        await txn.delete('audio_tracks',
+            where: 'book_id = ?', whereArgs: [book.bookId]);
+        for (final t in parts) {
+          await txn.insert('audio_tracks', t.toMap());
+        }
+        await txn.insert('audiobooks', book.toMap(),
+            conflictAlgorithm: ConflictAlgorithm.replace);
+      });
+
+  Future<Audiobook?> audiobookFor(String bookId) async {
+    final rows = await _db.query('audiobooks',
+        where: 'book_id = ?', whereArgs: [bookId], limit: 1);
+    return rows.isEmpty ? null : Audiobook.fromMap(rows.first);
+  }
+
+  /// Forgets the free recording (when the user picks their own audio).
+  Future<void> clearAudiobook(String bookId) =>
+      _db.delete('audiobooks', where: 'book_id = ?', whereArgs: [bookId]);
+
+  /// Every part being saved, across books.
+  Future<List<AudioTrack>> pendingDownloads() async {
+    final rows = await _db.query('audio_tracks',
+        where: 'download_id IS NOT NULL', orderBy: 'position ASC');
+    return rows.map(AudioTrack.fromMap).toList();
+  }
+
+  Future<void> setDownloadId(String trackId, int? id) => _db.update(
+      'audio_tracks', {'download_id': id},
+      where: 'id = ?', whereArgs: [trackId]);
+
+  /// The part is on the phone now: play it from [path].
+  Future<void> markTrackSaved(String trackId, String path) => _db.update(
+      'audio_tracks', {'file_path': path, 'download_id': null},
+      where: 'id = ?', whereArgs: [trackId]);
+
+  /// Back to streaming (saved files removed).
+  Future<void> markTrackRemote(String trackId) => _db.rawUpdate(
+      'UPDATE audio_tracks SET file_path = remote_url, download_id = NULL '
+      'WHERE id = ? AND remote_url IS NOT NULL',
+      [trackId]);
+
   Future<void> setTrackDuration(String trackId, int durationMs) => _db.update(
         'audio_tracks',
         {'duration_ms': durationMs},

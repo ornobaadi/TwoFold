@@ -38,6 +38,7 @@ One app, one screen. The book fills the screen, and small audio controls float o
 | F8 | Headset controls | Play/pause, plus next/previous mapped to skip ⏩/⏪. |
 | F9 | Auto save & resume | Saves page and audio position on pause, on leaving the app, and every 5 seconds while playing. Restores both when the book opens. |
 | F10 | Speed | 0.75× – 2.0× in 0.05 steps, saved per book. |
+| F11 | Free audiobooks | A LibriVox recording matched to the book (by its Gutenberg number when it came from Find): plays at once, saves for offline on Wi-Fi with the app closed, credits the reader. |
 
 ### Should have (v1.1)
 

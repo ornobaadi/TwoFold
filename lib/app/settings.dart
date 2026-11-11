@@ -18,6 +18,7 @@ class AppSettings {
     this.keepScreenOn = true,
     this.sort = LibrarySort.recent,
     this.palette = AppPalette.indigo,
+    this.wifiOnlyDownloads = true,
   });
 
   final ReaderTheme theme;
@@ -31,6 +32,9 @@ class AppSettings {
   final LibrarySort sort;
   final AppPalette palette;
 
+  /// Free audiobooks are saved for offline only on Wi-Fi.
+  final bool wifiOnlyDownloads;
+
   AppSettings copyWith({
     ReaderTheme? theme,
     int? fontSize,
@@ -42,6 +46,7 @@ class AppSettings {
     bool? keepScreenOn,
     LibrarySort? sort,
     AppPalette? palette,
+    bool? wifiOnlyDownloads,
   }) =>
       AppSettings(
         theme: theme ?? this.theme,
@@ -54,6 +59,7 @@ class AppSettings {
         keepScreenOn: keepScreenOn ?? this.keepScreenOn,
         sort: sort ?? this.sort,
         palette: palette ?? this.palette,
+        wifiOnlyDownloads: wifiOnlyDownloads ?? this.wifiOnlyDownloads,
       );
 
   static Future<AppSettings> load(BookRepo repo) async {
@@ -73,6 +79,7 @@ class AppSettings {
       keepScreenOn: (await repo.getSetting('keep_screen_on')) != 'false',
       sort: LibrarySort.values.asNameMap()[await repo.getSetting('sort')] ?? d.sort,
       palette: AppPalette.values.asNameMap()[await repo.getSetting('palette')] ?? d.palette,
+      wifiOnlyDownloads: (await repo.getSetting('wifi_only_downloads')) != 'false',
     );
   }
 
@@ -87,6 +94,7 @@ class AppSettings {
     await repo.setSetting('keep_screen_on', '$keepScreenOn');
     await repo.setSetting('sort', sort.name);
     await repo.setSetting('palette', palette.name);
+    await repo.setSetting('wifi_only_downloads', '$wifiOnlyDownloads');
   }
 }
 
@@ -105,6 +113,7 @@ class SettingsNotifier extends Notifier<AppSettings> {
     final handler = ref.read(audioHandlerProvider);
     handler.setSkipLength(Duration(seconds: next.skipSeconds));
     handler.autoRewind = next.autoRewind;
+    ref.read(downloadsProvider).wifiOnly = next.wifiOnlyDownloads;
     next.save(ref.read(bookRepoProvider));
   }
 }

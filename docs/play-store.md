@@ -26,6 +26,11 @@ LISTEN
 • Lock screen, notification and headset controls
 • What's playing stays one tap away at the bottom of the home screen
 
+FREE AUDIOBOOKS
+• Free LibriVox recordings, matched to the book you got
+• Search and browse LibriVox by title or author, filter by length
+• Plays straight away and saves itself for offline, on Wi-Fi
+
 FIND FREE BOOKS
 • Search and browse Project Gutenberg, the Internet Archive, Wikisource and Unglue.it
 • Popular, latest and random lists, or add any OPDS catalog by its link

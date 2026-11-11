@@ -2,11 +2,13 @@ package com.ornobaadi.twofold
 
 import android.Manifest
 import android.app.Activity
+import android.app.DownloadManager
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.media.AudioManager
 import android.net.Uri
 import android.os.Build
+import android.os.Environment
 import android.provider.DocumentsContract
 import android.provider.OpenableColumns
 import android.view.WindowManager
@@ -40,6 +42,29 @@ class MainActivity : AudioServiceActivity() {
                 requestPermissions(arrayOf(Manifest.permission.POST_NOTIFICATIONS), 4101)
             }
             result.success(null)
+        }
+        MethodChannel(messenger, "twofold/downloads").setMethodCallHandler { call, result ->
+            when (call.method) {
+                "enqueue" -> background(result) {
+                    enqueue(
+                        call.argument<String>("url")!!,
+                        call.argument<String>("path")!!,
+                        call.argument<String>("title")!!,
+                        call.argument<String>("userAgent")!!,
+                        call.argument<Boolean>("wifiOnly") == true,
+                    )
+                }
+                "status" -> background(result) {
+                    status(call.argument<List<Number>>("ids")!!.map { it.toLong() })
+                }
+                "remove" -> background(result) {
+                    val ids = call.argument<List<Number>>("ids")!!.map { it.toLong() }
+                    if (ids.isNotEmpty()) downloads().remove(*ids.toLongArray())
+                    null
+                }
+                "folder" -> result.success(audioDir().absolutePath)
+                else -> result.notImplemented()
+            }
         }
         MethodChannel(messenger, "twofold/files").setMethodCallHandler { call, result ->
             when (call.method) {
@@ -209,5 +234,70 @@ class MainActivity : AudioServiceActivity() {
         }
         walk(DocumentsContract.getTreeDocumentId(tree), "")
         return out
+    }
+
+    // --- audiobook downloads (Android's DownloadManager) ---
+
+    private fun downloads() = getSystemService(DOWNLOAD_SERVICE) as DownloadManager
+
+    /** App-private, needs no storage permission, removed with the app. */
+    private fun audioDir(): File {
+        val type = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            Environment.DIRECTORY_AUDIOBOOKS
+        } else {
+            Environment.DIRECTORY_MUSIC
+        }
+        return File(getExternalFilesDir(type) ?: filesDir, "twofold")
+    }
+
+    /** Saves [url] to [path] under audioDir(); returns the download id. */
+    private fun enqueue(url: String, path: String, title: String, agent: String, wifiOnly: Boolean): Long {
+        val uri = Uri.parse(url)
+        // Only the archive.org files LibriVox points to, and only over https.
+        require(uri.scheme == "https" && (uri.host == "archive.org" || uri.host!!.endsWith(".archive.org"))) {
+            "not an allowed address"
+        }
+        val dest = File(audioDir(), path)
+        dest.parentFile?.mkdirs()
+        if (dest.exists()) dest.delete()
+        val request = DownloadManager.Request(uri)
+            .setTitle(title)
+            .setDescription("TwoFold audiobook")
+            .addRequestHeader("User-Agent", agent)
+            .setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE)
+            .setDestinationUri(Uri.fromFile(dest))
+            .setAllowedOverRoaming(false)
+        if (wifiOnly) {
+            request.setAllowedNetworkTypes(DownloadManager.Request.NETWORK_WIFI)
+            request.setAllowedOverMetered(false)
+        }
+        return downloads().enqueue(request)
+    }
+
+    /** For each id: state (pending, running, paused, done, failed, gone), bytes, total, file. */
+    private fun status(ids: List<Long>): List<Map<String, Any?>> {
+        if (ids.isEmpty()) return emptyList()
+        val found = mutableMapOf<Long, Map<String, Any?>>()
+        downloads().query(DownloadManager.Query().setFilterById(*ids.toLongArray())).use { c ->
+            while (c.moveToNext()) {
+                val id = c.getLong(c.getColumnIndexOrThrow(DownloadManager.COLUMN_ID))
+                val state = when (c.getInt(c.getColumnIndexOrThrow(DownloadManager.COLUMN_STATUS))) {
+                    DownloadManager.STATUS_PENDING -> "pending"
+                    DownloadManager.STATUS_RUNNING -> "running"
+                    DownloadManager.STATUS_PAUSED -> "paused"
+                    DownloadManager.STATUS_SUCCESSFUL -> "done"
+                    else -> "failed"
+                }
+                val local = c.getString(c.getColumnIndexOrThrow(DownloadManager.COLUMN_LOCAL_URI))
+                found[id] = mapOf(
+                    "id" to id,
+                    "state" to state,
+                    "bytes" to c.getLong(c.getColumnIndexOrThrow(DownloadManager.COLUMN_BYTES_DOWNLOADED_SO_FAR)),
+                    "total" to c.getLong(c.getColumnIndexOrThrow(DownloadManager.COLUMN_TOTAL_SIZE_BYTES)),
+                    "file" to local?.let { Uri.parse(it).path },
+                )
+            }
+        }
+        return ids.map { found[it] ?: mapOf("id" to it, "state" to "gone") }
     }
 }

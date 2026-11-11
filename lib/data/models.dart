@@ -54,10 +54,14 @@ class AudioTrack {
     required this.position,
     this.durationMs,
     this.title,
+    this.remoteUrl,
+    this.downloadId,
   });
 
   final String id;
   final String bookId;
+
+  /// A file, a content:// URI, or for a part not yet saved, its https URL.
   final String filePath;
 
   /// Order in the playlist.
@@ -67,6 +71,18 @@ class AudioTrack {
   /// Display name. Older rows have none and derive it from the stored file.
   final String? title;
 
+  /// Where a free recording's part lives online (LibriVox on archive.org).
+  final String? remoteUrl;
+
+  /// Android's download id while the part is being saved.
+  final int? downloadId;
+
+  /// Plays from the internet until it is saved.
+  bool get isRemote => filePath.startsWith('https://');
+
+  /// Part of a free recording that can be saved for offline.
+  bool get downloadable => remoteUrl != null;
+
   Map<String, Object?> toMap() => {
         'id': id,
         'book_id': bookId,
@@ -74,6 +90,8 @@ class AudioTrack {
         'position': position,
         'duration_ms': durationMs,
         'title': title,
+        'remote_url': remoteUrl,
+        'download_id': downloadId,
       };
 
   factory AudioTrack.fromMap(Map<String, Object?> m) => AudioTrack(
@@ -83,6 +101,8 @@ class AudioTrack {
         position: m['position'] as int,
         durationMs: m['duration_ms'] as int?,
         title: m['title'] as String?,
+        remoteUrl: m['remote_url'] as String?,
+        downloadId: m['download_id'] as int?,
       );
 }
 
@@ -261,4 +281,55 @@ class BookDetails {
       updatedAt: m['updated_at'] as int,
     );
   }
+}
+
+/// A free recording attached to a book, and who reads it.
+class Audiobook {
+  const Audiobook({
+    required this.bookId,
+    required this.source,
+    required this.sourceId,
+    this.title,
+    this.reader,
+    this.pageUrl,
+    this.totalMs = 0,
+    this.parts = 0,
+    required this.addedAt,
+  });
+
+  final String bookId;
+
+  /// 'librivox'.
+  final String source;
+  final String sourceId;
+  final String? title;
+  final String? reader;
+  final String? pageUrl;
+  final int totalMs;
+  final int parts;
+  final int addedAt;
+
+  Map<String, Object?> toMap() => {
+    'book_id': bookId,
+    'source': source,
+    'source_id': sourceId,
+    'title': title,
+    'reader': reader,
+    'page_url': pageUrl,
+    'total_ms': totalMs,
+    'parts': parts,
+    'added_at': addedAt,
+  };
+
+  factory Audiobook.fromMap(Map<String, Object?> m) => Audiobook(
+    bookId: m['book_id'] as String,
+    source: m['source'] as String,
+    sourceId: m['source_id'] as String,
+    title: m['title'] as String?,
+    reader: m['reader'] as String?,
+    pageUrl: m['page_url'] as String?,
+    totalMs: m['total_ms'] as int? ?? 0,
+    parts: m['parts'] as int? ?? 0,
+    addedAt: m['added_at'] as int,
+  );
 }

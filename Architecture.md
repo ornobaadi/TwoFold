@@ -81,7 +81,9 @@ Saved places live in `marks` (DB v3; v4 adds `note`, the user's name for a place
 
 `book_details` (DB v5) keeps, per book, where it came from (source name, id, page) and Open Library's rating, counts, first year, pages, description and subjects (JSON). Written after a Find download and when the user taps Look up details; removed with the book.
 
-Settings (skip length, theme, font size, recent searches) live in one `settings` key/value table.
+`audio_tracks` (DB v6) also has `remote_url` and `download_id`: a free recording's part plays from `file_path`, which is its https URL until Android's DownloadManager saves it, then the local file. `audiobooks` keeps the recording's source, id, reader and size per book. `lib/audio/downloads.dart` coordinates saving with the native channel `twofold/downloads`.
+
+Settings (skip length, theme, font size, recent searches, Wi-Fi only downloads, which books are being saved) live in one `settings` key/value table.
 
 ## Audio flow
 

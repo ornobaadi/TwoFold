@@ -8,6 +8,10 @@ class FoundBook {
     this.detail,
     this.summary,
     this.downloads = const [],
+    this.listenLength,
+    this.sizeBytes,
+    this.reader,
+    this.readerCount = 0,
   });
 
   /// [BookSource.id] of the site it came from.
@@ -27,6 +31,14 @@ class FoundBook {
   /// Files the listing already named (catalogs). Empty when the site is asked
   /// for them on Get.
   final List<DownloadTarget> downloads;
+
+  /// For a recording: how long it plays, its size and who reads it.
+  final Duration? listenLength;
+  final int? sizeBytes;
+  final String? reader;
+  final int readerCount;
+
+  bool get isRecording => listenLength != null;
 
   String get key => '$source:$id';
 }

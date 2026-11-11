@@ -9,6 +9,7 @@ import '../../audio/chapters.dart';
 import '../../audio/player_controller.dart';
 import '../../data/models.dart';
 import '../library/book_card.dart';
+import 'save_status.dart';
 import '../player/player_bar.dart';
 
 /// Built for using without looking: big buttons and little else to hit.
@@ -70,8 +71,25 @@ class ListenScreen extends ConsumerWidget {
               ),
               const SizedBox(height: Space.xs),
               _Subtitle(book: book),
-              const SizedBox(height: Space.m),
+              SaveStatus(bookId: book.id, compact: true),
+              const SizedBox(height: Space.s),
               const Scrubber(),
+              // A part that can't play yet (offline and not saved).
+              ValueListenableBuilder(
+                valueListenable: handler.playError,
+                builder: (context, error, _) => error == null
+                    ? const SizedBox.shrink()
+                    : Padding(
+                        padding: const EdgeInsets.only(top: Space.xs),
+                        child: Text(
+                          error,
+                          textAlign: TextAlign.center,
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: theme.colorScheme.error,
+                          ),
+                        ),
+                      ),
+              ),
               const SizedBox(height: Space.m),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
