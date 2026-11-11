@@ -1,8 +1,8 @@
 """Play Store screenshots in 3D phone mockups, and the feature graphic.
 
 Run from the project folder:  python tool/store_mockups.py
-Inputs: build/mock/*.png (SHOTS=1 SHOT_SIZE=1220x2712 store_shots_test) and
-assets/screenshots/ (phone captures). Writes docs/store/mockups/.
+Inputs: build/shots/*.png (SHOTS=1 SHOT_SIZE=1220x2712 store_shots_test,
+with --update-goldens). Writes docs/store/mockups/.
 Only public domain or openly licensed books may appear in store images.
 """
 
@@ -219,9 +219,9 @@ def feature_graphic(left_screen, right_screen):
     for line in ['Read it. Hear it.', 'Never lose your place.']:
         d.text((66, y), line, font=serif(40, 500), fill=GOLD)
         y += 54
-    d.text((66, 372), 'Ebooks and audiobooks in one app,', font=sans(23, 420),
+    d.text((66, 372), 'Free classics with their audiobooks,', font=sans(23, 420),
            fill=NIGHT_MUTED)
-    d.text((66, 404), 'with thousands of free classics.', font=sans(23, 420),
+    d.text((66, 404), 'and your own books too.', font=sans(23, 420),
            fill=NIGHT_MUTED)
 
     # A fan of first-edition covers (public domain) beside the phone.
@@ -239,29 +239,27 @@ def feature_graphic(left_screen, right_screen):
 
 def main():
     os.makedirs(OUT, exist_ok=True)
-    caps = sorted(glob.glob('assets/screenshots/*.png'))
-    phone_find = repaint_now_playing(Image.open(caps[3]))
-    mock = {n: Image.open(f'build/mock/{n}.png').convert('RGB')
-            for n in ['library', 'reader', 'listen', 'places', 'details',
-                      'home_night']}
+    mock = {n: Image.open(f'build/shots/{n}.png').convert('RGB')
+            for n in ['welcome', 'find', 'find_details', 'reader', 'listen',
+                      'library', 'home_night']}
 
     slides = [
-        (mock['library'], 'Your ebook and audiobook, together',
-         'Come back to the same page and the same minute, every time.', True),
-        (mock['reader'], 'Read with the audio at hand',
-         'Play, skip and scrub without leaving the page.', False),
-        (mock['listen'], 'A proper audiobook player',
-         'Chapters, speed, a sleep timer and lock screen controls.', False),
-        (phone_find, 'Thousands of free classics',
-         'Project Gutenberg, the Internet Archive, Wikisource and Unglue.it.',
-         True),
-        (mock['details'], 'Everything about the book',
-         'Ratings, descriptions and subjects from Open Library, kept with it.',
+        (mock['welcome'], 'Great books you can read and hear',
+         "Free classics with a reader's voice, in one quiet app.", True),
+        (mock['find'], 'Thousands of free classics',
+         'Search Project Gutenberg, LibriVox and the Internet Archive at once.',
          False),
-        (mock['places'], 'Save a place, keep the minute',
-         'Each place you save holds the page and the second of audio.', True),
+        (mock['find_details'], 'The book and its audiobook, in one tap',
+         'Plays straight away. Downloads for offline on Wi-Fi.', True),
+        (mock['reader'], 'Read with the audio at hand',
+         'Switch between Read and Listen. The page and the minute stay put.',
+         False),
+        (mock['listen'], 'A proper audiobook player',
+         'Chapters, speed, a sleep timer and lock screen controls.', True),
+        (mock['library'], 'Right where you left off',
+         'Your shelf remembers the page and the second, every time.', False),
         (mock['home_night'], 'Easy on the eyes at night',
-         'Paper, Sepia and Night, with five quiet accent colours.', False),
+         'Paper, Sepia and Night, with five quiet accent colours.', True),
     ]
     for i, (shot, title, sub, dark) in enumerate(slides, 1):
         slide(shot, title, sub, dark, flip=i % 2 == 0).save(

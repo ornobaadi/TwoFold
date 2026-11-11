@@ -5,7 +5,7 @@ import 'dart:typed_data';
 
 /// How TwoFold introduces itself to the sites it asks. They can see who is
 /// calling, and a name and a page to read about us is the polite thing to send.
-const userAgent = 'TwoFold/0.2 (Android reader; https://github.com/ornobaadi/TwoFold)';
+const userAgent = 'TwoFold/0.3 (Android reader; https://github.com/ornobaadi/TwoFold)';
 
 /// The only sites TwoFold talks to, and the sites they send files from.
 const findHosts = {

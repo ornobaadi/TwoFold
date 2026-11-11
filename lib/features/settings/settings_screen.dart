@@ -9,7 +9,7 @@ import '../library/providers.dart';
 import '../../audio/downloads.dart' show formatSize;
 import 'settings_sheet.dart';
 
-const appVersion = '0.2.0';
+const appVersion = '0.3.0';
 
 /// Settings for the whole app. Text options live in the reader's sheet too.
 class SettingsScreen extends ConsumerWidget {

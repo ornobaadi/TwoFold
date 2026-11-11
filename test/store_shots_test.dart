@@ -22,6 +22,10 @@ import 'package:twofold/find/book_source.dart';
 import 'package:twofold/find/cover_source.dart';
 import 'package:twofold/find/find_service.dart';
 import 'package:twofold/find/web.dart';
+import 'package:twofold/find/librivox.dart';
+import 'package:twofold/find/librivox_source.dart';
+import 'package:twofold/find/everything_source.dart';
+import 'package:twofold/features/welcome/welcome_screen.dart';
 import 'package:twofold/features/listen/listen_screen.dart';
 import 'package:twofold/features/reader/reader_screen.dart';
 import 'package:twofold/features/settings/settings_screen.dart';
@@ -106,10 +110,17 @@ void main() {
         title: 'Alice in Wonderland',
         duration: const Duration(hours: 3, minutes: 5)));
 
+    final gutenberg = _ShotSource();
+    final recordings = LibrivoxSource(_FixtureWeb());
     final findService = FindService(
         web: Web(),
-        sources: [_ShotSource()],
+        sources: [
+          EverythingSource(gutenberg: gutenberg, recordings: recordings),
+          gutenberg,
+          recordings,
+        ],
         info: _ShotInfo(),
+        librivox: LibrivoxService(_FixtureWeb()),
         covers: CoverService(Web()));
     await tester.runAsync(() => repo.saveDetails(BookDetails(
           bookId: 'pride',
@@ -162,6 +173,9 @@ void main() {
       }
     }
 
+    await open(const WelcomeScreen(), ReaderTheme.paper, AppPalette.indigo);
+    await shot('welcome');
+
     await open(const HomeShell(), ReaderTheme.paper, AppPalette.indigo);
     await shot('library');
 
@@ -170,6 +184,9 @@ void main() {
 
     await open(const HomeShell(initialTab: 1), ReaderTheme.paper, AppPalette.indigo);
     await shot('find');
+    await tester.tap(find.text('Jane Austen').first);
+    await wait(20);
+    await shot('find_details');
 
     await open(const BookDetailsScreen(bookId: 'pride'), ReaderTheme.sepia,
         AppPalette.indigo);
@@ -259,6 +276,14 @@ class _ShotSource extends BookSource {
 
   @override
   Future<List<DownloadTarget>> targets(FoundBook book) async => const [];
+}
+
+/// LibriVox's saved Pride and Prejudice answer, so the book sheet shows its
+/// real recording without going online.
+class _FixtureWeb extends Web {
+  @override
+  Future<String> getText(Uri url, {int maxBytes = 4 << 20, Duration timeout = const Duration(seconds: 25)}) async =>
+      File('test/fixtures/find/librivox_pride.json').readAsStringSync();
 }
 
 class _ShotInfo extends BookInfoService {

@@ -68,6 +68,22 @@ ebook reader, audiobook player, epub reader, pdf reader, read and listen, m4b pl
 - **Contact email:** ornobaadi.dev@gmail.com
 - **Price:** Free. A paid app can't later be made free in reverse, and free can't later become paid, so decide before publishing.
 
+## Release notes for 0.3.0 (build 5)
+
+Paste into **Release > What's new in this release** (500 characters max; this is 464):
+
+```
+• Free audiobooks: classics come with a LibriVox recording
+• Get the book and its audiobook in one tap
+• Plays straight away, downloads for offline on Wi-Fi
+• One search for Gutenberg, LibriVox and the Internet Archive
+• Real covers, and lists to browse: Mystery, Romance and more
+• Filter by length, one reader, or not yet on your shelf
+• Read | Listen switch at the top of every book
+• Shelf filters: With audio, Downloaded
+• A new welcome for first-time readers
+```
+
 ## Release notes for 0.2.0 (build 4)
 
 Paste into **Release > What's new in this release** (500 characters max; this is 451):
