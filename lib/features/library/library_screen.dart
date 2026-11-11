@@ -58,8 +58,25 @@ class LibraryScreen extends ConsumerStatefulWidget {
   ConsumerState<LibraryScreen> createState() => _LibraryScreenState();
 }
 
+/// Which books the shelf shows.
+enum ShelfFilter {
+  all('All'),
+  audio('With audio'),
+  downloaded('Downloaded');
+
+  const ShelfFilter(this.label);
+  final String label;
+
+  bool keeps(LibraryEntry e) => switch (this) {
+    all => true,
+    audio => e.hasAudio,
+    downloaded => e.downloaded,
+  };
+}
+
 class _LibraryScreenState extends ConsumerState<LibraryScreen> {
   String _query = '';
+  ShelfFilter _filter = ShelfFilter.all;
 
   @override
   void initState() {
@@ -215,7 +232,8 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
     final library = ref.watch(libraryProvider);
     final entries = library.value ?? const <LibraryEntry>[];
     final sort = ref.watch(settingsProvider.select((s) => s.sort));
-    final shown = arrangeLibrary(entries, _query, sort);
+    final shown =
+        arrangeLibrary(entries, _query, sort).where(_filter.keeps).toList();
     LibraryEntry? recent;
     for (final e in entries) {
       if (e.book.lastOpened != null) {
@@ -376,6 +394,39 @@ class _LibraryScreenState extends ConsumerState<LibraryScreen> {
                   ),
                 ),
               ),
+              if (entries.any((e) => e.hasAudio))
+                SliverPadding(
+                  padding: const EdgeInsets.fromLTRB(Space.l, 0, Space.l, Space.m),
+                  sliver: SliverToBoxAdapter(
+                    child: Wrap(
+                      spacing: Space.s,
+                      children: [
+                        for (final f in ShelfFilter.values)
+                          ChoiceChip(
+                            label: Text(
+                              '${f.label} ${entries.where(f.keeps).length}',
+                            ),
+                            selected: _filter == f,
+                            onSelected: (_) => setState(() => _filter = f),
+                          ),
+                      ],
+                    ),
+                  ),
+                ),
+              if (!filtering && shown.isEmpty)
+                SliverPadding(
+                  padding: const EdgeInsets.all(Space.xl),
+                  sliver: SliverToBoxAdapter(
+                    child: Text(
+                      _filter == ShelfFilter.downloaded
+                          ? 'No audiobooks are fully on this phone yet. '
+                              'Download one from its About page.'
+                          : 'No books here yet.',
+                      textAlign: TextAlign.center,
+                      style: theme.textTheme.bodyLarge,
+                    ),
+                  ),
+                ),
               if (filtering && shown.isEmpty)
                 SliverPadding(
                   padding: const EdgeInsets.all(Space.xl),

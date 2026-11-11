@@ -94,13 +94,13 @@ class _SaveStatusState extends ConsumerState<SaveStatus> {
     final s = theme.colorScheme;
     final c = context.twofold;
     final line = _p.complete
-        ? 'Saved for offline · ${formatSize(_p.bytes)}'
+        ? 'Downloaded · ${formatSize(_p.bytes)}'
         : _p.saving
-        ? 'Saving for offline: ${_p.saved} of ${_p.parts} parts · '
+        ? 'Downloading: ${_p.saved} of ${_p.parts} chapters · '
               '${formatSize(_p.bytes)} of ${formatSize(_p.totalBytes)}'
         : _p.saved == 0
-        ? 'Plays online · ${formatSize(_p.totalBytes)} to save'
-        : '${_p.saved} of ${_p.parts} parts saved · the rest plays online';
+        ? 'Plays online · ${formatSize(_p.totalBytes)} to download'
+        : '${_p.saved} of ${_p.parts} chapters downloaded · the rest plays online';
     final action = _p.complete
         ? TextButton(onPressed: _removeSaved, child: const Text('Remove'))
         : _p.saving
@@ -110,7 +110,7 @@ class _SaveStatusState extends ConsumerState<SaveStatus> {
           )
         : TextButton(
             onPressed: () => _downloads.saveAll(widget.bookId),
-            child: const Text('Save'),
+            child: const Text('Download'),
           );
     final progress = _p.totalBytes == 0 ? 0.0 : (_p.bytes / _p.totalBytes).clamp(0.0, 1.0);
 
@@ -148,7 +148,7 @@ class _SaveStatusState extends ConsumerState<SaveStatus> {
               style: theme.textTheme.titleSmall,
             ),
             Text(
-              'Public domain recording · ${b.parts} parts',
+              'Public domain recording · ${b.parts} chapters',
               style: theme.textTheme.bodySmall,
             ),
             const SizedBox(height: Space.m),

@@ -10,6 +10,7 @@ import 'book_source.dart';
 import 'cover_source.dart';
 import 'librivox.dart';
 import 'librivox_source.dart';
+import 'everything_source.dart';
 import 'gutenberg_source.dart';
 import 'opds_source.dart';
 import 'web.dart';
@@ -30,12 +31,20 @@ class FindService {
     this.info = info ?? BookInfoService(this.web);
     this.covers = covers ?? CoverService(this.web);
     this.librivox = librivox ?? LibrivoxService(this.web);
-    recordings = LibrivoxSource(this.web);
+    recordings = sources?.whereType<LibrivoxSource>().firstOrNull ??
+        LibrivoxSource(this.web);
+    final gutenberg = GutenbergSource(this.web);
+    final archive = ArchiveSource(this.web, maxBytes: maxBytes);
     builtIn = sources ??
         [
-          GutenbergSource(this.web),
+          EverythingSource(
+            gutenberg: gutenberg,
+            recordings: recordings,
+            others: [archive],
+          ),
+          gutenberg,
           recordings,
-          ArchiveSource(this.web, maxBytes: maxBytes),
+          archive,
           WikisourceSource(this.web),
           unglueSource(this.web),
         ];

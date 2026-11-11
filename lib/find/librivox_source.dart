@@ -138,4 +138,5 @@ FoundBook foundRecording(LibrivoxBook b) => FoundBook(
   sizeBytes: b.bytes,
   reader: b.readerLine,
   readerCount: b.readers.length,
+  recordingId: b.id,
 );

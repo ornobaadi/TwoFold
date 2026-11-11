@@ -15,6 +15,7 @@ import '../../find/librivox.dart';
 import '../../audio/downloads.dart' show formatSize;
 import '../../find/book_source.dart';
 import '../../find/opds_source.dart';
+import '../../find/everything_source.dart';
 import '../../find/web.dart';
 import '../../import/importer.dart';
 import '../library/providers.dart';
@@ -202,17 +203,20 @@ class _FindScreenState extends ConsumerState<FindScreen> {
 
   /// Filters on the list on screen; nothing is asked of the site again.
   LengthFilter _length = LengthFilter.any;
+  bool _withAudioOnly = false;
   bool _oneReader = false;
   bool _notOwned = false;
 
   bool _keeps(FoundBook b) =>
       _length.keeps(b) &&
+      (!_withAudioOnly || b.isRecording) &&
       (!_oneReader || !b.isRecording || b.readerCount == 1) &&
       (!_notOwned || _gets[b.key]?.book == null);
 
   void _pick(BookSource source) {
     if (source.id == _source.id) return;
     _length = LengthFilter.any;
+    _withAudioOnly = false;
     _oneReader = false;
     _notOwned = false;
     final query = _field.text.trim();
@@ -471,8 +475,8 @@ class _FindScreenState extends ConsumerState<FindScreen> {
         b.key,
         () {
           final service = ref.read(findServiceProvider);
-          final chosen =
-              b.source == 'librivox' ? service.recordings.recording(b.id) : null;
+          final rid = b.recordingId;
+          final chosen = rid == null ? null : service.recordings.recording(rid);
           if (chosen != null) return Future.value([chosen]);
           return service.librivox
               .find(
@@ -498,7 +502,7 @@ class _FindScreenState extends ConsumerState<FindScreen> {
     _changed.value++;
     try {
       await attachRecording(ref, book, list.first, save: true);
-      _toast('Audiobook added. It plays now and saves itself for offline.');
+      _toast('Audiobook added. It plays now and downloads itself for offline.');
     } catch (_) {
       _toast('The audiobook could not be added. Try again from the book.');
     } finally {
@@ -515,7 +519,7 @@ class _FindScreenState extends ConsumerState<FindScreen> {
         valueListenable: _changed,
         builder: (context, _, _) => _DetailsSheet(
           book: b,
-          sourceName: _source.name,
+          sourceName: ref.read(findServiceProvider).sourceOf(b.source).name,
           state: _gets[b.key],
           info: _info(b),
           service: ref.read(findServiceProvider).info,
@@ -539,7 +543,6 @@ class _FindScreenState extends ConsumerState<FindScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final sources = ref.watch(findServiceProvider).sources;
     return PopScope(
       canPop: !widget.active || (!_listing && widget.onExit == null),
       onPopInvokedWithResult: (popped, _) {
@@ -576,7 +579,7 @@ class _FindScreenState extends ConsumerState<FindScreen> {
                       const SizedBox(width: Space.m),
                     Expanded(
                       child: Text(
-                        'Find free books',
+                        'Find',
                         style: theme.textTheme.titleLarge,
                       ),
                     ),
@@ -599,7 +602,9 @@ class _FindScreenState extends ConsumerState<FindScreen> {
                   controller: _field,
                   enabled: _source.canSearch,
                   hintText: _source.canSearch
-                      ? 'Title or author in ${_source.name}'
+                      ? (_source.id == 'all'
+                            ? 'Any title or author'
+                            : 'Title or author in ${_source.name}')
                       : '${_source.name} cannot be searched',
                   constraints: const BoxConstraints(minHeight: 44),
                   textInputAction: TextInputAction.search,
@@ -613,34 +618,6 @@ class _FindScreenState extends ConsumerState<FindScreen> {
                       tooltip: 'Search',
                       onPressed: _source.canSearch ? _search : null,
                       icon: const Icon(Icons.arrow_forward_rounded),
-                    ),
-                  ],
-                ),
-              ),
-              SizedBox(
-                height: 44,
-                child: ListView(
-                  scrollDirection: Axis.horizontal,
-                  padding: const EdgeInsets.symmetric(horizontal: Space.l),
-                  children: [
-                    for (final s in sources)
-                      Padding(
-                        padding: const EdgeInsets.only(right: Space.s),
-                        child: GestureDetector(
-                          onLongPress: s is OpdsSource && s.id != 'unglue'
-                              ? () => _removeCatalog(s)
-                              : null,
-                          child: ChoiceChip(
-                            label: Text(s.name),
-                            selected: s.id == _source.id,
-                            onSelected: (_) => _pick(s),
-                          ),
-                        ),
-                      ),
-                    ActionChip(
-                      avatar: const Icon(Icons.add_rounded, size: 18),
-                      label: const Text('Add catalog'),
-                      onPressed: _addCatalog,
                     ),
                   ],
                 ),
@@ -672,12 +649,157 @@ class _FindScreenState extends ConsumerState<FindScreen> {
     );
   }
 
+  /// Which library searches and lists come from; Everything by default.
+  Widget _libraries(ThemeData theme) {
+    final sources = ref.watch(findServiceProvider).sources;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('LIBRARIES', style: _overline(theme)),
+        const SizedBox(height: Space.s),
+        Wrap(
+          spacing: Space.s,
+          runSpacing: Space.s,
+          children: [
+            for (final s in sources)
+              GestureDetector(
+                onLongPress: s is OpdsSource && s.id != 'unglue'
+                    ? () => _removeCatalog(s)
+                    : null,
+                child: ChoiceChip(
+                  label: Text(s.name),
+                  selected: s.id == _source.id,
+                  onSelected: (_) => _pick(s),
+                ),
+              ),
+            ActionChip(
+              avatar: const Icon(Icons.add_rounded, size: 18),
+              label: const Text('Add catalog'),
+              onPressed: _addCatalog,
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  /// Everything's front page: classics that come with audio, then lists.
+  Widget _everythingHome(ThemeData theme) {
+    final c = context.twofold;
+    return ListView(
+      padding: const EdgeInsets.fromLTRB(Space.l, 0, Space.l, Space.xl),
+      children: [
+        Text(
+          'Searches Project Gutenberg, LibriVox and the Internet Archive at once.',
+          style: theme.textTheme.bodySmall?.copyWith(color: c.muted),
+        ),
+        const SizedBox(height: Space.l),
+        Text('CLASSICS WITH AUDIOBOOKS', style: _overline(theme)),
+        const SizedBox(height: Space.s),
+        SizedBox(
+          height: 150,
+          child: ListView.separated(
+            scrollDirection: Axis.horizontal,
+            itemCount: classicsWithAudio.length,
+            separatorBuilder: (_, _) => const SizedBox(width: Space.m),
+            itemBuilder: (context, i) {
+              final b = classicsWithAudio[i];
+              return Semantics(
+                button: true,
+                label: '${b.title} by ${b.author}, with audiobook',
+                excludeSemantics: true,
+                child: InkWell(
+                  onTap: () => _details(b),
+                  borderRadius: BorderRadius.circular(8),
+                  child: SizedBox(
+                    width: 84,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Stack(
+                          children: [
+                            FoundCover(book: b, width: 84),
+                            const Positioned(
+                              right: 5,
+                              bottom: 5,
+                              child: AudioMark(),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          b.author!,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: theme.textTheme.labelMedium?.copyWith(color: c.muted),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
+        const SizedBox(height: Space.l),
+        Text('BROWSE', style: _overline(theme)),
+        const SizedBox(height: Space.s),
+        GridView.count(
+          crossAxisCount: 2,
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          mainAxisSpacing: Space.s,
+          crossAxisSpacing: Space.s,
+          childAspectRatio: 2.6,
+          children: [
+            for (final s in EverythingSource.lists)
+              OutlinedButton(
+                style: OutlinedButton.styleFrom(
+                  alignment: Alignment.centerLeft,
+                  padding: const EdgeInsets.symmetric(horizontal: Space.m),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                ),
+                onPressed: () => _browse(s),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      s.title,
+                      maxLines: 1,
+                      style: theme.textTheme.titleSmall?.copyWith(fontFamily: serifFont),
+                    ),
+                    if (s.blurb != null)
+                      Text(
+                        s.blurb!,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: theme.textTheme.labelMedium?.copyWith(color: c.muted),
+                      ),
+                  ],
+                ),
+              ),
+          ],
+        ),
+        const SizedBox(height: Space.xl),
+        _libraries(theme),
+        const SizedBox(height: Space.xl),
+        Text(
+          'Books and audiobooks here are free and are saved in your library. '
+          'TwoFold goes online only when you search, browse or get one.',
+          style: theme.textTheme.bodySmall,
+        ),
+      ],
+    );
+  }
+
   /// The site's lists to browse, and what it is.
   Widget _home(ThemeData theme) {
+    if (_source.id == 'all') return _everythingHome(theme);
     final c = context.twofold;
     final shelves = _shelves[_source.id];
     return ListView(
-      padding: const EdgeInsets.fromLTRB(Space.l, Space.l, Space.l, Space.xl),
+      padding: const EdgeInsets.fromLTRB(Space.l, 0, Space.l, Space.xl),
       children: [
         Text(
           _source.blurb,
@@ -707,6 +829,8 @@ class _FindScreenState extends ConsumerState<FindScreen> {
             icon: Icons.search_rounded,
             text: 'Search ${_source.name} by title or author.',
           ),
+        const SizedBox(height: Space.xl),
+        _libraries(theme),
         const SizedBox(height: Space.xl),
         Text(
           'Books and audiobooks here are free and are saved in your library. '
@@ -776,6 +900,8 @@ class _FindScreenState extends ConsumerState<FindScreen> {
           if (_books.isNotEmpty)
             _Filters(
               recordings: recordings,
+              withAudio: _withAudioOnly,
+              onWithAudio: (v) => setState(() => _withAudioOnly = v),
               length: _length,
               oneReader: _oneReader,
               notOwned: _notOwned,
@@ -986,7 +1112,11 @@ class _ResultRow extends StatelessWidget {
     final c = context.twofold;
     final get = state;
     final meta = [
-      if (book.isRecording) recordingLine(book),
+      if (book.isRecording)
+        [
+          if (book.listenLength != null) formatLength(book.listenLength!),
+          if (book.reader != null) 'read by ${book.reader}',
+        ].join(' · '),
       if (book.detail != null && book.author != null) book.detail!,
       if (get?.book != null) 'In your library',
     ].join(' · ');
@@ -1029,6 +1159,11 @@ class _ResultRow extends StatelessWidget {
                           style: theme.textTheme.bodyMedium?.copyWith(
                             color: c.muted,
                           ),
+                        ),
+                      if (book.isRecording)
+                        const Padding(
+                          padding: EdgeInsets.only(top: 4),
+                          child: AudioTag(),
                         ),
                       if (meta.isNotEmpty)
                         Padding(
@@ -1091,12 +1226,14 @@ class _GetButton extends StatelessWidget {
     required this.onGet,
     required this.onOpen,
     this.wide = false,
+    this.label = 'Get book',
   });
 
   final FoundBook book;
   final _Get? state;
   final VoidCallback onGet;
   final ValueChanged<Book> onOpen;
+  final String label;
 
   /// The full-width button of the details sheet.
   final bool wide;
@@ -1160,7 +1297,7 @@ class _GetButton extends StatelessWidget {
         ),
         onPressed: onGet,
         icon: const Icon(Icons.download_rounded, size: 18),
-        label: const Text('Get book'),
+        label: Text(label),
       );
     }
     return OutlinedButton(
@@ -1328,19 +1465,54 @@ class _DetailsSheetState extends State<_DetailsSheet> {
                 ],
               ),
               const SizedBox(height: Space.l),
-              _GetButton(
-                book: book,
-                state: state,
-                onGet: widget.onGet,
-                onOpen: widget.onOpen,
-                wide: true,
-              ),
               _FreeAudiobook(
                 audio: widget.audio,
                 state: state,
                 withAudio: widget.withAudio,
                 onWithAudio: widget.onWithAudio,
                 onAddAudio: widget.onAddAudio,
+              ),
+              const SizedBox(height: Space.l),
+              FutureBuilder<List<LibrivoxBook>>(
+                future: widget.audio,
+                builder: (context, snap) {
+                  final both = (snap.data?.isNotEmpty ?? false) &&
+                      state?.book == null &&
+                      state?.working != true &&
+                      state?.error == null;
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      _GetButton(
+                        book: book,
+                        state: state,
+                        onGet: () {
+                          widget.onWithAudio(true);
+                          widget.onGet();
+                        },
+                        onOpen: widget.onOpen,
+                        wide: true,
+                        label: both ? 'Get book and audiobook' : 'Get book',
+                      ),
+                      if (both) ...[
+                        const SizedBox(height: Space.s),
+                        Text(
+                          'Starts playing straight away. The audio downloads '
+                          'on Wi-Fi (${formatSize(snap.data!.first.bytes)}).',
+                          textAlign: TextAlign.center,
+                          style: theme.textTheme.bodySmall,
+                        ),
+                        TextButton(
+                          onPressed: () {
+                            widget.onWithAudio(false);
+                            widget.onGet();
+                          },
+                          child: const Text('Get the book only'),
+                        ),
+                      ],
+                    ],
+                  );
+                },
               ),
               if (state?.error != null) ...[
                 const SizedBox(height: Space.s),
@@ -1648,21 +1820,11 @@ class _FreeAudiobook extends StatelessWidget {
                   const SizedBox(height: Space.xs),
                   Text('Read by ${r.readerLine}', style: theme.textTheme.titleSmall),
                   Text(
-                    '${formatLength(r.total)} · ${r.parts.length} parts · '
+                    '${formatLength(r.total)} · ${r.parts.length} chapters · '
                     '${formatSize(r.bytes)} · from LibriVox',
                     style: theme.textTheme.bodySmall,
                   ),
-                  if (inLibrary == null)
-                    CheckboxListTile(
-                      contentPadding: EdgeInsets.zero,
-                      controlAffinity: ListTileControlAffinity.leading,
-                      dense: true,
-                      title: const Text('Add it with the book'),
-                      subtitle: const Text('Plays right away, saves for offline'),
-                      value: withAudio,
-                      onChanged: busy ? null : (v) => onWithAudio(v ?? true),
-                    )
-                  else
+                  if (inLibrary != null && !busy)
                     Align(
                       alignment: Alignment.centerLeft,
                       child: TextButton.icon(
@@ -1714,6 +1876,8 @@ enum LengthFilter {
 class _Filters extends StatelessWidget {
   const _Filters({
     required this.recordings,
+    required this.withAudio,
+    required this.onWithAudio,
     required this.length,
     required this.oneReader,
     required this.notOwned,
@@ -1725,6 +1889,8 @@ class _Filters extends StatelessWidget {
   });
 
   final bool recordings;
+  final bool withAudio;
+  final ValueChanged<bool> onWithAudio;
   final LengthFilter length;
   final bool oneReader;
   final bool notOwned;
@@ -1738,6 +1904,13 @@ class _Filters extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final chips = <Widget>[
+      if (recordings)
+        FilterChip(
+          avatar: const Icon(Icons.headphones_rounded, size: 16),
+          label: const Text('With audiobook'),
+          selected: withAudio,
+          onSelected: onWithAudio,
+        ),
       if (recordings)
         for (final f in LengthFilter.values)
           ChoiceChip(
@@ -1778,3 +1951,66 @@ class _Filters extends StatelessWidget {
     );
   }
 }
+
+/// A small headphones mark for covers that come with audio.
+class AudioMark extends StatelessWidget {
+  const AudioMark({super.key, this.size = 22});
+
+  final double size;
+
+  @override
+  Widget build(BuildContext context) {
+    final s = Theme.of(context).colorScheme;
+    return Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(color: s.surface, shape: BoxShape.circle),
+      child: Icon(Icons.headphones_rounded, size: size * 0.6, color: s.onSurface),
+    );
+  }
+}
+
+/// "Book + audiobook", on a result that comes with a recording.
+class AudioTag extends StatelessWidget {
+  const AudioTag({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final s = theme.colorScheme;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+      decoration: BoxDecoration(
+        border: Border.all(color: s.primary),
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.headphones_rounded, size: 13, color: s.primary),
+          const SizedBox(width: 4),
+          Text(
+            'Book + audiobook',
+            style: theme.textTheme.labelMedium?.copyWith(
+              color: s.primary,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Well-known Gutenberg books that LibriVox has recorded, for Find's front
+/// page. Their recordings are looked up when one is opened.
+const classicsWithAudio = [
+  FoundBook(source: 'gutenberg', id: '1342', title: 'Pride and Prejudice', author: 'Jane Austen'),
+  FoundBook(source: 'gutenberg', id: '345', title: 'Dracula', author: 'Bram Stoker'),
+  FoundBook(source: 'gutenberg', id: '1661', title: 'The Adventures of Sherlock Holmes', author: 'Arthur Conan Doyle'),
+  FoundBook(source: 'gutenberg', id: '11', title: "Alice's Adventures in Wonderland", author: 'Lewis Carroll'),
+  FoundBook(source: 'gutenberg', id: '84', title: 'Frankenstein', author: 'Mary Shelley'),
+  FoundBook(source: 'gutenberg', id: '55', title: 'The Wonderful Wizard of Oz', author: 'L. Frank Baum'),
+  FoundBook(source: 'gutenberg', id: '120', title: 'Treasure Island', author: 'Robert Louis Stevenson'),
+  FoundBook(source: 'gutenberg', id: '35', title: 'The Time Machine', author: 'H. G. Wells'),
+];

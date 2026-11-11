@@ -10,6 +10,9 @@ import 'package:twofold/features/library/book_details_screen.dart';
 import 'package:twofold/features/library/cover_picker.dart';
 import 'package:twofold/find/cover_source.dart';
 import 'package:twofold/find/librivox.dart';
+import 'package:twofold/find/librivox_source.dart';
+import 'package:twofold/find/everything_source.dart';
+import 'package:twofold/features/welcome/welcome_screen.dart';
 import 'package:twofold/features/listen/audiobook_sheet.dart';
 import 'package:twofold/features/reader/pane.dart';
 import 'package:twofold/features/reader/places_sheet.dart';
@@ -37,6 +40,29 @@ import 'package:twofold/features/player/player_bar.dart';
 import 'package:twofold/features/reader/reader_screen.dart';
 import 'package:twofold/features/settings/settings_screen.dart';
 import 'package:twofold/features/settings/settings_sheet.dart';
+
+/// LibriVox's saved Pride and Prejudice answer, for every question.
+class _FixtureWeb extends Web {
+  @override
+  Future<String> getText(Uri url, {int maxBytes = 4 << 20, Duration timeout = const Duration(seconds: 25)}) async =>
+      File('test/fixtures/find/librivox_pride.json').readAsStringSync();
+}
+
+class _LookAusten extends BookSource {
+  @override
+  String get id => 'gutenberg';
+  @override
+  String get name => 'Project Gutenberg';
+  @override
+  String get blurb => '';
+  @override
+  Future<FoundPage> search(String query, {int page = 0}) async => const FoundPage([
+        FoundBook(source: 'gutenberg', id: '1342', title: 'Pride and Prejudice', author: 'Jane Austen'),
+        FoundBook(source: 'gutenberg', id: '946', title: 'Lady Susan', author: 'Jane Austen'),
+      ], hasMore: false);
+  @override
+  Future<List<DownloadTarget>> targets(FoundBook book) async => const [];
+}
 
 class _LookSource extends BookSource {
   @override
@@ -215,6 +241,55 @@ void main() {
           await tester.pump(const Duration(milliseconds: 120));
         }
       });
+      await shot('welcome', const WelcomeScreen());
+      Widget everything() {
+        final lv = LibrivoxSource(_FixtureWeb());
+        final g = _LookAusten();
+        return ProviderScope(
+          overrides: [
+            findServiceProvider.overrideWithValue(FindService(
+              web: Web(),
+              sources: [EverythingSource(gutenberg: g, recordings: lv), g, lv],
+              info: _LookInfo(),
+            )),
+          ],
+          child: const FindScreen(),
+        );
+      }
+      await shot('find_everything', everything());
+      await shot('find_everything_results', everything(), () async {
+        await tester.enterText(find.byType(TextField), 'austen');
+        await tester.tap(find.byTooltip('Search'));
+        for (var i = 0; i < 6; i++) {
+          await tester.runAsync(
+              () => Future<void>.delayed(const Duration(milliseconds: 80)));
+          await tester.pump(const Duration(milliseconds: 100));
+        }
+        expect(find.text('Book + audiobook'), findsWidgets);
+      });
+      await shot('find_everything_details', everything(), () async {
+        await tester.enterText(find.byType(TextField), 'austen');
+        await tester.tap(find.byTooltip('Search'));
+        for (var i = 0; i < 6; i++) {
+          await tester.runAsync(
+              () => Future<void>.delayed(const Duration(milliseconds: 80)));
+          await tester.pump(const Duration(milliseconds: 100));
+        }
+        await tester.tap(find.text('Pride and Prejudice').first);
+        for (var i = 0; i < 4; i++) {
+          await tester.runAsync(
+              () => Future<void>.delayed(const Duration(milliseconds: 80)));
+          await tester.pump(const Duration(milliseconds: 120));
+        }
+        await tester.drag(find.text('Jane Austen').last, const Offset(0, -500));
+        for (var i = 0; i < 4; i++) {
+          await tester.runAsync(
+              () => Future<void>.delayed(const Duration(milliseconds: 80)));
+          await tester.pump(const Duration(milliseconds: 120));
+        }
+        expect(find.text('Get book and audiobook'), findsOneWidget);
+        expect(find.text('Get the book only'), findsOneWidget);
+      });
       Widget shell() => ProviderScope(
           overrides: [
             findServiceProvider.overrideWithValue(
@@ -228,7 +303,7 @@ void main() {
         expect(find.text('LOOK'), findsOneWidget);
         await tester.tap(find.bySemanticsLabel('Find'));
         await tester.pump(const Duration(milliseconds: 400));
-        expect(find.text('Find free books'), findsOneWidget);
+        expect(find.text('Title or author in Project Gutenberg'), findsOneWidget);
         await tester.tap(find.bySemanticsLabel('Settings'));
         await tester.pump(const Duration(milliseconds: 400));
       });

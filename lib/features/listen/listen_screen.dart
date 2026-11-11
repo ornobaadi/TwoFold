@@ -1,3 +1,5 @@
+import '../../app/mode_switch.dart';
+import '../reader/reader_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -14,9 +16,12 @@ import '../player/player_bar.dart';
 
 /// Built for using without looking: big buttons and little else to hit.
 class ListenScreen extends ConsumerWidget {
-  const ListenScreen({super.key, required this.book});
+  const ListenScreen({super.key, required this.book, this.fromReader = false});
 
   final Book book;
+
+  /// Opened from the reader, so Read goes back to it.
+  final bool fromReader;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -37,12 +42,25 @@ class ListenScreen extends ConsumerWidget {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     IconButton(
-                      tooltip: 'Back to reading',
+                      tooltip: 'Back',
                       onPressed: () => Navigator.of(context).pop(),
                       icon: const Icon(
                         Icons.keyboard_arrow_down_rounded,
                         size: 28,
                       ),
+                    ),
+                    ModeSwitch(
+                      reading: false,
+                      onListen: () {},
+                      onRead: () {
+                        if (fromReader) {
+                          Navigator.of(context).pop();
+                        } else {
+                          Navigator.of(context).pushReplacement(
+                            fadeRoute(ReaderScreen(book: book)),
+                          );
+                        }
+                      },
                     ),
                     IconButton(
                       tooltip: 'Settings',

@@ -204,7 +204,7 @@ class _AudiobookSheetState extends ConsumerState<AudiobookSheet> {
                     const SizedBox(height: Space.xs),
                     Text(
                       'Read by LibriVox volunteers and free to keep. '
-                      'Plays straight away and saves itself for offline.',
+                      'Plays straight away and downloads itself for offline.',
                       style: theme.textTheme.bodySmall,
                     ),
                     const SizedBox(height: Space.l),
@@ -266,7 +266,7 @@ class _AudiobookSheetState extends ConsumerState<AudiobookSheet> {
                         const Divider(height: 1),
                         SwitchListTile(
                           contentPadding: const EdgeInsets.symmetric(horizontal: Space.l),
-                          title: const Text('Save for offline'),
+                          title: const Text('Download for offline'),
                           subtitle: Text(
                             '${formatSize(chosen.bytes)}'
                             '${wifiOnly ? ', on Wi-Fi only' : ''}. You can listen while it saves.',
@@ -369,7 +369,7 @@ class _RecordingRow extends StatelessWidget {
                       Text(
                         [
                           formatLength(r.total),
-                          '${r.parts.length} parts',
+                          '${r.parts.length} chapters',
                           formatSize(r.bytes),
                           if (r.language.isNotEmpty && r.language != 'English') r.language,
                         ].join(' · '),

@@ -33,8 +33,8 @@ Route<T> fadeRoute<T>(Widget page, {bool instant = false}) => PageRouteBuilder<T
 Future<void> openReader(BuildContext context, Book book, {bool instant = false}) =>
     Navigator.of(context).push(fadeRoute(ReaderScreen(book: book), instant: instant));
 
-Future<void> openListen(BuildContext context, Book book) =>
-    Navigator.of(context).push(fadeRoute(ListenScreen(book: book)));
+Future<void> openListen(BuildContext context, Book book, {bool fromReader = false}) =>
+    Navigator.of(context).push(fadeRoute(ListenScreen(book: book, fromReader: fromReader)));
 
 /// Returns the new book, if one was added and should open.
 Future<Book?> openNewBook(BuildContext context) =>

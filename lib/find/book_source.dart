@@ -12,6 +12,7 @@ class FoundBook {
     this.sizeBytes,
     this.reader,
     this.readerCount = 0,
+    this.recordingId,
   });
 
   /// [BookSource.id] of the site it came from.
@@ -37,6 +38,9 @@ class FoundBook {
   final int? sizeBytes;
   final String? reader;
   final int readerCount;
+
+  /// The LibriVox recording that comes with this book, when known.
+  final String? recordingId;
 
   bool get isRecording => listenLength != null;
 

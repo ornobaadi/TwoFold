@@ -17,6 +17,12 @@ class LibraryEntry {
 
   bool get hasAudio => tracks.isNotEmpty;
 
+  /// Some of its audio still plays from the internet.
+  bool get streams => tracks.any((t) => t.isRemote);
+
+  /// Its audio is all on the phone.
+  bool get downloaded => hasAudio && !streams;
+
   Duration get audioTotal => Duration(
     milliseconds: tracks.fold(0, (sum, t) => sum + (t.durationMs ?? 0)),
   );
@@ -142,6 +148,31 @@ class BookCard extends StatelessWidget {
               Stack(
                 children: [
                   BookCover(book: entry.book),
+                  if (entry.hasAudio)
+                    Positioned(
+                      right: 5,
+                      bottom: 5,
+                      child: Semantics(
+                        label: entry.streams
+                            ? 'Audiobook, plays online'
+                            : 'Audiobook, on this phone',
+                        child: Container(
+                          width: 24,
+                          height: 24,
+                          decoration: BoxDecoration(
+                            color: s.surface,
+                            shape: BoxShape.circle,
+                          ),
+                          child: Icon(
+                            entry.streams
+                                ? Icons.cloud_outlined
+                                : Icons.headphones_rounded,
+                            size: 14,
+                            color: s.onSurface,
+                          ),
+                        ),
+                      ),
+                    ),
                   Positioned(
                     top: 0,
                     right: 0,

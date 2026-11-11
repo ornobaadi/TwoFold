@@ -172,7 +172,9 @@ void main() {
     expect(find.textContaining('busy right now'), findsNWidgets(2), reason: 'in the row and in the tray');
     expect((await tester.runAsync(() => repo.allBooks()))!.length, 1);
 
-    // Another site gives its own results.
+    // Another site gives its own results: libraries are chosen on the front.
+    await tester.tap(find.byTooltip('Back to lists'));
+    await tester.pumpAndSettle();
     await tester.tap(find.text('Internet Archive'));
     await _settle(tester, () => find.text('Archive Find').evaluate().isNotEmpty);
     expect(archive.queries, ['alice']);

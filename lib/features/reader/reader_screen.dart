@@ -1,3 +1,4 @@
+import '../../app/mode_switch.dart';
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -308,7 +309,7 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> {
                           message: _error!,
                           onBack: () => Navigator.of(context).pop(),
                           onListen: hasAudio
-                              ? () => openListen(context, _book)
+                              ? () => openListen(context, _book, fromReader: true)
                               : null,
                           onRetry: () => setState(() {
                             _error = null;
@@ -412,6 +413,21 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> {
                                 onPressed: () => Navigator.of(context).pop(),
                                 icon: const Icon(Icons.arrow_back_rounded),
                               ),
+                              if (hasAudio)
+                                Expanded(
+                                  child: Center(
+                                    child: ModeSwitch(
+                                      reading: true,
+                                      onRead: () {},
+                                      onListen: () => openListen(
+                                        context,
+                                        _book,
+                                        fromReader: true,
+                                      ),
+                                    ),
+                                  ),
+                                )
+                              else
                               Expanded(
                                 child: Semantics(
                                   button: true,
@@ -430,7 +446,16 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> {
                                   ),
                                 ),
                               ),
-                              if (_label.isNotEmpty)
+                              if (hasAudio)
+                                IconButton(
+                                  tooltip: 'About this book',
+                                  onPressed: () {
+                                    _touched();
+                                    openBookDetails(context, _book);
+                                  },
+                                  icon: const Icon(Icons.info_outline_rounded),
+                                )
+                              else if (_label.isNotEmpty)
                                 Padding(
                                   padding: const EdgeInsets.only(
                                     left: Space.s,
@@ -551,7 +576,7 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> {
                               _Tool(
                                 icon: Icons.headphones_outlined,
                                 label: 'Listen',
-                                onTap: () => openListen(context, _book),
+                                onTap: () => openListen(context, _book, fromReader: true),
                               ),
                           ],
                         ),

@@ -1,4 +1,5 @@
 
+import 'features/welcome/welcome_screen.dart';
 import 'package:audio_service/audio_service.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -48,6 +49,7 @@ Future<void> main() async {
   }
 
   final resume = await repo.getSetting(openBookKey);
+  final welcome = resume == null && await shouldWelcome(repo);
 
   runApp(ProviderScope(
     overrides: [
@@ -55,7 +57,9 @@ Future<void> main() async {
       audioHandlerProvider.overrideWithValue(handler),
       initialSettingsProvider.overrideWithValue(settings),
     ],
-    child: TwoFoldApp(home: homeScreen(resumeBookId: resume)),
+    child: TwoFoldApp(
+      home: welcome ? const WelcomeScreen() : homeScreen(resumeBookId: resume),
+    ),
   ));
 }
 
