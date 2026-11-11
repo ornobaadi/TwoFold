@@ -7,7 +7,12 @@ class ModeSwitch extends StatelessWidget {
     required this.reading,
     required this.onRead,
     required this.onListen,
+    this.playing = false,
   });
+
+  /// The book is playing: Listen shows a live mark, so reading never hides
+  /// that audio is running.
+  final bool playing;
 
   final bool reading;
   final VoidCallback onRead;
@@ -20,7 +25,7 @@ class ModeSwitch extends StatelessWidget {
     Widget side(String label, bool on, VoidCallback tap) => Semantics(
       button: true,
       selected: on,
-      label: label,
+      label: label == 'Listen' && playing ? 'Listen, playing' : label,
       excludeSemantics: true,
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
@@ -34,12 +39,21 @@ class ModeSwitch extends StatelessWidget {
             color: on ? s.onSurface : Colors.transparent,
             borderRadius: BorderRadius.circular(18),
           ),
-          child: Text(
-            label,
-            style: theme.textTheme.labelLarge?.copyWith(
-              color: on ? s.surface : s.onSurface,
-              fontWeight: on ? FontWeight.w600 : FontWeight.w500,
-            ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (label == 'Listen' && playing && !on) ...[
+                Icon(Icons.graphic_eq_rounded, size: 16, color: s.primary),
+                const SizedBox(width: 6),
+              ],
+              Text(
+                label,
+                style: theme.textTheme.labelLarge?.copyWith(
+                  color: on ? s.surface : s.onSurface,
+                  fontWeight: on ? FontWeight.w600 : FontWeight.w500,
+                ),
+              ),
+            ],
           ),
         ),
       ),

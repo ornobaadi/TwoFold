@@ -236,12 +236,15 @@ class MadeBy extends StatelessWidget {
     final ink = theme.colorScheme.onSurface;
     final muted = theme.colorScheme.onSurfaceVariant;
     // Small caps, widely spaced: quiet but still readable (11 sp).
+    // Set in Literata, the book face, like the rest of TwoFold's voice:
+    // small serif capitals, widely spaced.
     TextStyle? caps(Color c) => theme.textTheme.labelSmall?.copyWith(
+      fontFamily: serifFont,
       color: c,
-      fontSize: 11,
-      letterSpacing: 1.6,
+      fontSize: 11.5,
+      letterSpacing: 1.8,
       fontWeight: FontWeight.w500,
-      height: 1.7,
+      height: 1.8,
     );
     return Semantics(
       container: true,

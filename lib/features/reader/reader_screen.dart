@@ -418,6 +418,7 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> {
                                   child: Center(
                                     child: ModeSwitch(
                                       reading: true,
+                                      playing: ref.watch(playbackStateProvider).value?.playing ?? false,
                                       onRead: () {},
                                       onListen: () => openListen(
                                         context,
@@ -572,12 +573,6 @@ class _ReaderScreenState extends ConsumerState<ReaderScreen> {
                               label: 'Text',
                               onTap: () => showSettingsSheet(context),
                             ),
-                            if (hasAudio)
-                              _Tool(
-                                icon: Icons.headphones_outlined,
-                                label: 'Listen',
-                                onTap: () => openListen(context, _book, fromReader: true),
-                              ),
                           ],
                         ),
                       ),
